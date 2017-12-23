@@ -42,7 +42,7 @@ class TestUniqueFilename(object):
         actual = ImapServer._unique_filename(filename, from_addr='from@example.com')
 
         assert expected == actual
-        self.mock_sha256.assert_called_once_with('from@example.com')
+        self.mock_sha256.assert_called_once_with(b'from@example.com')
 
     def test_zip_with_from_addr(self):
         filename = 'test.zip'
@@ -51,4 +51,4 @@ class TestUniqueFilename(object):
         actual = ImapServer._unique_filename(filename, from_addr='from@example.com')
 
         assert expected == actual
-        self.mock_sha256.assert_called_once_with('from@example.com')
+        self.mock_sha256.assert_called_once_with(b'from@example.com')

@@ -45,7 +45,7 @@ class ImapServer(object):
         if not from_addr:
             hash_val = os.urandom(3).hex()
         else:
-            sha256 = hashlib.sha256(from_addr)
+            sha256 = hashlib.sha256(from_addr.encode('utf-8'))
             hash_val = sha256.hexdigest()[:6]
 
         return '{basename}_{hash_val}{ext}'.format(basename=basename,
