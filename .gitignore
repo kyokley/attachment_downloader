@@ -1,6 +1,6 @@
 *.pyc
 __pycache__
-attachments
+solutions
 py3
 settings.conf
 .cache
