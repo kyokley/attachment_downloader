@@ -5,17 +5,19 @@ from imap_server import ImapServer
 
 def main():
     config = loadConfig('settings.conf')
-    HOST = config.get('Settings', 'HOST')
-    USERNAME = config.get('Settings', 'USERNAME')
-    DIRECTORY = config.get('Settings', 'DIRECTORY')
+    HOST = config.get('IMAP', 'HOST')
+    USERNAME = config.get('IMAP', 'USERNAME')
+    FOLDER = config.get('IMAP', 'FOLDER')
     PASSWORD = getpass.getpass()
+
+    LOCAL_DIRECTORY = config.get('ATTACHMENTS', 'LOCAL_DIRECTORY')
 
     imap_server = ImapServer(HOST,
                              USERNAME,
                              PASSWORD,
-                             directory=DIRECTORY,
+                             folder=FOLDER,
                              )
-    imap_server.download_attachements()
+    imap_server.download_attachements(directory=LOCAL_DIRECTORY)
     imap_server.logout()
 
 if __name__ == '__main__':

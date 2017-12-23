@@ -14,12 +14,12 @@ class ImapServer(object):
                  host,
                  username,
                  password,
-                 directory=None,
+                 folder=None,
                  ssl=True):
         self.host = host
         self.username = username
         self.password = password
-        self.directory = directory
+        self.folder = folder
         self._connected = False
 
         if ssl:
@@ -30,8 +30,8 @@ class ImapServer(object):
         self._connection = _imap_class(self.host)
         self._login()
 
-        if self.directory:
-            self._select(self.directory)
+        if self.folder:
+            self._select(self.folder)
 
     def _login(self):
         typ, data = self._connection.login(self.username, self.password)
