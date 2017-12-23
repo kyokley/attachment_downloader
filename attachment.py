@@ -14,6 +14,9 @@ def archive_extension(filename):
 
 def archive_basename(filename):
     ext = archive_extension(filename)
+    if not ext:
+        return None
+
     basename = filename.split(ext)[0]
     return basename
 

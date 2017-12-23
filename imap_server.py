@@ -1,4 +1,5 @@
 import os
+import hashlib
 import email
 from imaplib import (IMAP4_SSL,
                      IMAP4,
@@ -37,14 +38,19 @@ class ImapServer(object):
             self._select(self.folder)
 
     @staticmethod
-    def _unique_filename(filename):
+    def _unique_filename(filename, from_addr=None):
         ext = archive_extension(filename)
         basename = archive_basename(filename)
 
-        rand = os.urandom(3).hex()
-        return '{basename}_{rand}{ext}'.format(basename=basename,
-                                               rand=rand,
-                                               ext=ext)
+        if not from_addr:
+            hash_val = os.urandom(3).hex()
+        else:
+            sha256 = hashlib.sha256(from_addr)
+            hash_val = sha256.hexdigest()[:6]
+
+        return '{basename}_{hash_val}{ext}'.format(basename=basename,
+                                                   hash_val=hash_val,
+                                                   ext=ext)
 
     def _login(self):
         typ, data = self._connection.login(self.username, self.password)
@@ -108,12 +114,13 @@ class ImapServer(object):
                         part.get('Content-Disposition') is None):
                     continue
 
-                filename = part.get_filename().lower()
+                orig_filename = part.get_filename().lower()
+                uniq_filename = self._unique_filename(orig_filename, from_addr=mail.get('From'))
 
-                full_path = os.path.join(directory, filename)
+                full_path = os.path.join(directory, uniq_filename)
 
                 if not os.path.exists(full_path):
-                    print('Writing {}'.format(filename))
+                    print('Writing {}'.format(uniq_filename))
 
                     with open(full_path, 'wb') as f:
                         f.write(part.get_payload(decode=True))
