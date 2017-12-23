@@ -1,7 +1,7 @@
 import getpass
 
 from config import loadConfig
-from email import ImapServer
+from imap_server import ImapServer
 
 def main():
     config = loadConfig('settings.conf')

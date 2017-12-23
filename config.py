@@ -1,29 +1,28 @@
 import os
-import ConfigParser
+import configparser
 
 from six.moves import input
 
 def createConfig(path):
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.add_section('Settings')
 
     host = input('Enter host: ')
-    config.set('Settings', 'HOST', host)
-
     username = input('Enter username: ')
-    config.set('Settings', 'USERNAME', username)
-
     directory = input('Enter directory: ')
-    config.set('Settings', 'DIRECTORY', directory)
 
-    with open(path, 'wb') as f:
-        f.write(config)
+    config['Settings'] = {'HOST': host,
+                          'USERNAME': username,
+                          'DIRECTORY': directory}
+
+    with open(path, 'w') as f:
+        config.write(f)
 
 def loadConfig(path):
     if not os.path.exists(path):
         createConfig(path)
 
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(path)
 
     return config
