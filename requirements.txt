@@ -1,0 +1,4 @@
+bpython
+pdbpp
+mock
+nose
