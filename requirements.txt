@@ -2,3 +2,4 @@ bpython
 pdbpp
 mock
 nose
+pytest
