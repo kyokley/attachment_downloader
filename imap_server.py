@@ -86,6 +86,9 @@ class ImapServer(object):
             yield mail
 
     def download_attachements(self, directory='.'):
+        if not os.path.exists(directory):
+            os.mkdir(directory)
+
         for mail in self.fetch_messages():
             for part in mail.walk():
                 if (part.get_content_maintype() == 'multipart' or
@@ -93,7 +96,7 @@ class ImapServer(object):
                     continue
 
                 filename = part.get_filename()
-                full_path = os.path.join(directory, filename)
+                full_path = os.path.join(directory, filename.lower())
 
                 if not os.path.exists(full_path):
                     print('Writing {}'.format(filename))

@@ -2,6 +2,7 @@ import getpass
 
 from config import loadConfig
 from imap_server import ImapServer
+from attachment import decompress_archives
 
 def main():
     config = loadConfig('settings.conf')
@@ -19,6 +20,8 @@ def main():
                              )
     imap_server.download_attachements(directory=LOCAL_DIRECTORY)
     imap_server.logout()
+
+    decompress_archives(LOCAL_DIRECTORY)
 
 if __name__ == '__main__':
     main()
