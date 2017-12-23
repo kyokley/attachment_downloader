@@ -12,6 +12,11 @@ def archive_extension(filename):
         if extension in filename:
             return extension
 
+def archive_basename(filename):
+    ext = archive_extension(filename)
+    basename = filename.split(ext)[0]
+    return basename
+
 def decompress_archives(path):
     archives = os.listdir(path)
 
@@ -22,7 +27,7 @@ def decompress_archives(path):
 
         full_path = os.path.join(path, archive)
 
-        basename = archive.split(ext)[0]
+        basename = archive_basename(archive)
         new_dir = os.path.join(path, basename)
 
         if os.path.exists(new_dir):

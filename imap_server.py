@@ -3,6 +3,9 @@ import email
 from imaplib import (IMAP4_SSL,
                      IMAP4,
                      )
+from attachment import (archive_extension,
+                        archive_basename,
+                        )
 
 OK = 'OK'
 
@@ -32,6 +35,16 @@ class ImapServer(object):
 
         if self.folder:
             self._select(self.folder)
+
+    @staticmethod
+    def _unique_filename(filename):
+        ext = archive_extension(filename)
+        basename = archive_basename(filename)
+
+        rand = os.urandom(3).hex()
+        return '{basename}_{rand}{ext}'.format(basename=basename,
+                                               rand=rand,
+                                               ext=ext)
 
     def _login(self):
         typ, data = self._connection.login(self.username, self.password)
@@ -95,8 +108,9 @@ class ImapServer(object):
                         part.get('Content-Disposition') is None):
                     continue
 
-                filename = part.get_filename()
-                full_path = os.path.join(directory, filename.lower())
+                filename = part.get_filename().lower()
+
+                full_path = os.path.join(directory, filename)
 
                 if not os.path.exists(full_path):
                     print('Writing {}'.format(filename))
