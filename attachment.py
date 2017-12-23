@@ -1,5 +1,6 @@
 import os
 import tarfile
+import zipfile
 
 TAR_EXTENSION = '.tar.gz'
 ZIP_EXTENSION = '.zip'
@@ -27,14 +28,15 @@ def archive_basename(filename):
     basename = filename.split(ext)[0]
     return basename
 
-def _tar_filter(members):
-    for tarinfo in members:
-        if ('..' in tarinfo.name or
-                tarinfo.name.startswith('/')):
+def _archive_filter(members, name_func):
+    for member in members:
+        name = name_func(member)
+        if ('..' in name or
+                name.startswith('/')):
             continue
 
-        if os.path.splitext(tarinfo.name)[1] in ALLOWED_CODE_EXTENSIONS:
-            yield tarinfo
+        if os.path.splitext(name)[1] in ALLOWED_CODE_EXTENSIONS:
+            yield member
 
 
 def decompress_archives(path):
@@ -61,5 +63,8 @@ def decompress_archives(path):
 
         if ext is TAR_EXTENSION:
             tar_file = tarfile.open(new_full_path, 'r')
-            tar_file.extractall(path=new_dir, members=_tar_filter(tar_file))
+            tar_file.extractall(path=new_dir, members=_archive_filter(tar_file, lambda x: x.name))
             tar_file.close()
+        elif ext is ZIP_EXTENSION:
+            zip_file = zipfile.ZipFile(new_full_path, 'r')
+            zip_file.extractall(path=new_dir, members=_archive_filter(zip_file.namelist(), lambda x: x))
