@@ -85,6 +85,7 @@ Vagrant.configure("2") do |config|
 
      git clone https://github.com/kyokley/attachment_downloader.git
      cd attachment_downloader
+     export PYTHONPATH=.
 
      pip3 install -r requirements.txt
      pytest
