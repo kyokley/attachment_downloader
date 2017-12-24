@@ -6,6 +6,9 @@ from config import loadConfig
 from imap_server import ImapServer
 from attachment import decompress_archives
 from code_runner import run_all
+from blessings import Terminal
+
+term = Terminal()
 
 def main():
     config = loadConfig('settings.conf')
@@ -24,11 +27,22 @@ def main():
     imap_server.download_attachements(directory=LOCAL_DIRECTORY)
     imap_server.logout()
 
+    print('Finished downloading attachments')
+    print()
+
+    print('Starting decompressing archives')
     decompress_archives(LOCAL_DIRECTORY)
+    print('Finished decompressing archives')
+    print()
 
     run_code = input('Run code now? (y/N) ')
     if run_code.lower() in ('y', 'yes'):
         run_all()
 
+    print('All Done')
+
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(term.red(str(e)))

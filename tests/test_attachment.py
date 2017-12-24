@@ -75,12 +75,23 @@ class TestArchiveFilter(object):
         assert expected == actual
 
     def test_double_dot_not_allowed(self):
-        test_tar_gz = './../test.tr.gz'
-        test_zip = './../test.zip'
+        test_py = './../test.py'
+        test_txt = './../test.txt'
 
         expected = []
-        actual = [x for x in _archive_filter([test_tar_gz,
-                                              test_zip,
+        actual = [x for x in _archive_filter([test_py,
+                                              test_txt,
+                                              ], lambda y: y)]
+
+        assert expected == actual
+
+    def test_absolute_paths_not_allowed(self):
+        test_py = '/test.py'
+        test_txt = '/test.txt'
+
+        expected = []
+        actual = [x for x in _archive_filter([test_py,
+                                              test_txt,
                                               ], lambda y: y)]
 
         assert expected == actual

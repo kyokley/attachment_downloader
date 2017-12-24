@@ -45,6 +45,7 @@ def decompress_archives(path):
         if not ext:
             continue
 
+        print('Decompressing {}'.format(archive))
         full_path = os.path.join(path, archive)
 
         basename = archive_basename(archive)
