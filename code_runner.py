@@ -1,11 +1,12 @@
 import os
 import sys
-import subprocess
-import shlex
+
+from blessings import Terminal
 
 from config import loadConfig
+from utils import run
 
-TIMEOUT = 60
+term = Terminal()
 
 BANDIT_EXECUTABLE = os.path.join(os.path.dirname(sys.executable), 'bandit')
 
@@ -14,55 +15,39 @@ def run_all():
     LOCAL_DIRECTORY = config.get('ATTACHMENTS', 'LOCAL_DIRECTORY')
 
     solutions = os.listdir(LOCAL_DIRECTORY)
+
+    for solution in solutions:
+        print('Running {}'.format(solution))
+        path = os.path.join(LOCAL_DIRECTORY, solution)
+        try:
+            check_bandit(path)
+
+            check_triangle(path, 'degenerate_triangle.txt', 5)
+            check_triangle(path, 'small_triangle.txt', 387)
+            check_triangle(path, 'large_triangle.txt', 3549)
+
+        except Exception as e:
+            print(term.red('Got exception running {}'.format(solution)))
+            print(term.red(e))
+            print(term.red(e.stdout))
+
+        print()
+
+def check_bandit(path):
+    run(path,
+        '{} -r {}'.format(BANDIT_EXECUTABLE, path),
+        suppress_output=True,
+        )
+
+def check_triangle(path, filename, expected):
     data_directory = os.path.join(
             os.path.abspath(os.path.dirname(__file__)),
             'data')
 
-    for solution in solutions:
-        path = os.path.join(LOCAL_DIRECTORY, solution)
-        try:
-            print('Running {}'.format(solution))
-            run(path,
-                '{} -r {}'.format(BANDIT_EXECUTABLE, path),
-                suppress_output=True,
-                )
-            run(path,
-                'python3 traversal.py {}'.format(
-                    os.path.join(data_directory, 'small_triangle.txt')),
-                expected='387')
-
-            run(path,
-                'python3 traversal.py {}'.format(
-                    os.path.join(data_directory, 'large_triangle.txt')),
-                expected='3549')
-        except Exception as e:
-            print('Got exception running {}'.format(solution))
-            print(e)
-            print(e.stdout)
-
-
-def run(directory, cmd, expected=None, suppress_output=False):
-    split_cmd = shlex.split(cmd)
-    completed_process = subprocess.run(split_cmd,
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT,
-                                       cwd=directory,
-                                       timeout=TIMEOUT,
-                                       check=True,
-                                       encoding='utf-8',
-                                       )
-
-    if not expected:
-        if not suppress_output:
-            print(completed_process.stdout)
-    else:
-        if completed_process.stdout.strip() == expected:
-            print('GOOD: {}'.format(cmd))
-        else:
-            print('FAILED: {}'.format(cmd))
-            print('Got:')
-            print(completed_process.stdout)
-
+    run(path,
+        'python3 traversal.py {}'.format(
+            os.path.join(data_directory, filename)),
+        expected=expected)
 
 if __name__ == '__main__':
     run_all()
