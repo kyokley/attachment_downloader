@@ -82,8 +82,11 @@ Vagrant.configure("2") do |config|
      pyenv global 3.6.2
 
      pip3 install pip virtualenv --upgrade
-     pip3 install -r /vagrant/requirements.txt
-     cd /vagrant
+
+     git clone https://github.com/kyokley/attachment_downloader.git
+     cd attachment_downloader
+
+     pip3 install -r requirements.txt
      pytest
    SHELL
 end
