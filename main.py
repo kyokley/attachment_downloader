@@ -1,8 +1,11 @@
 import getpass
 
+from six.moves import input
+
 from config import loadConfig
 from imap_server import ImapServer
 from attachment import decompress_archives
+from code_runner import run_all
 
 def main():
     config = loadConfig('settings.conf')
@@ -22,6 +25,10 @@ def main():
     imap_server.logout()
 
     decompress_archives(LOCAL_DIRECTORY)
+
+    run_code = input('Run code now? (y/N) ')
+    if run_code.lower() in ('y', 'yes'):
+        run_all()
 
 if __name__ == '__main__':
     main()
