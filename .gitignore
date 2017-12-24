@@ -4,3 +4,5 @@ solutions
 py3
 settings.conf
 .cache
+.vagrant
+*.log
