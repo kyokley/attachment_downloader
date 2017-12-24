@@ -119,7 +119,8 @@ class ImapServer(object):
 
                 full_path = os.path.join(directory, uniq_filename)
 
-                if not os.path.exists(full_path):
+                if (not os.path.exists(full_path) and
+                        not os.path.exists(os.path.join(directory, archive_basename(uniq_filename)))):
                     print('Writing {}'.format(uniq_filename))
 
                     with open(full_path, 'wb') as f:
