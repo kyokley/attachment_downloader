@@ -64,10 +64,26 @@ Vagrant.configure("2") do |config|
   # Enable provisioning with a shell script. Additional provisioners such as
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
-   config.vm.provision "shell", inline: <<-SHELL
-     apt-get update
-     apt-get install aptitude -y
-     aptitude install python3-pip -y
+   config.vm.provision "shell", inline: <<-SHELL, privileged: false
+     sudo apt-get update
+     sudo apt-get install aptitude -y
+     sudo aptitude install gcc make zlib1g-dev libreadline-dev libbz2-dev libssl-dev libsqlite3-dev ncurses-dev libncursesw5-dev -y
+
+     git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+
+     echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bash_profile
+     echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bash_profile
+
+     echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.bash_profile
+   SHELL
+
+   config.vm.provision "shell", inline: <<-SHELL, privileged: false
+     pyenv install 3.6.2
+     pyenv global 3.6.2
+
      pip3 install pip virtualenv --upgrade
+     pip3 install -r /vagrant/requirements.txt
+     cd /vagrant
+     pytest
    SHELL
 end
