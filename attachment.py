@@ -2,6 +2,9 @@ import os
 import tarfile
 import zipfile
 
+from blessings import Terminal
+term = Terminal()
+
 TAR_EXTENSION = '.tar.gz'
 ZIP_EXTENSION = '.zip'
 PY_EXTENSION = '.py'
@@ -45,14 +48,14 @@ def decompress_archives(path):
         if not ext:
             continue
 
-        print('Decompressing {}'.format(archive))
+        print('Decompressing {}'.format(term.blue(archive)))
         full_path = os.path.join(path, archive)
 
         basename = archive_basename(archive)
         new_dir = os.path.join(path, basename)
 
         if os.path.exists(new_dir):
-            print('{} already exists! Continuing...'.format(new_dir))
+            print(term.yellow('{} already exists! Continuing...'.format(new_dir)))
             continue
 
         os.mkdir(new_dir)

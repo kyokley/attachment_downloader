@@ -17,7 +17,7 @@ def run_all():
     solutions = os.listdir(LOCAL_DIRECTORY)
 
     for solution in solutions:
-        print('Running {}'.format(solution))
+        print('Running {}'.format(term.blue(solution)))
         path = os.path.join(LOCAL_DIRECTORY, solution)
         try:
             check_bandit(path)

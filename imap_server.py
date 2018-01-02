@@ -7,6 +7,8 @@ from imaplib import (IMAP4_SSL,
 from attachment import (archive_extension,
                         archive_basename,
                         )
+from blessings import Terminal
+term = Terminal()
 
 OK = 'OK'
 
@@ -121,7 +123,7 @@ class ImapServer(object):
 
                 if (not os.path.exists(full_path) and
                         not os.path.exists(os.path.join(directory, archive_basename(uniq_filename)))):
-                    print('Writing {}'.format(uniq_filename))
+                    print('Writing {}'.format(term.blue(uniq_filename)))
 
                     with open(full_path, 'wb') as f:
                         f.write(part.get_payload(decode=True))
