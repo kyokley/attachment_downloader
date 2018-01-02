@@ -87,7 +87,7 @@ Vagrant.configure("2") do |config|
      cd attachment_downloader
      export PYTHONPATH=.
 
-     pip3 install -r requirements.txt
+     pip3 install -r test_requirements.txt
      pytest
    SHELL
 end
