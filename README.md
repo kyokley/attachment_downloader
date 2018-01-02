@@ -1,4 +1,4 @@
-# Attachment Downloader
+# Attachment Downloader [![Build Status](https://travis-ci.org/kyokley/attachment_downloader.svg?branch=master)](https://travis-ci.org/kyokley/attachment_downloader)
 
 Automate running code submitted through email
 
