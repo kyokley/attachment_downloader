@@ -1,7 +1,1 @@
 blessings
-bandit
-bpython
-pdbpp
-mock
-nose
-pytest
