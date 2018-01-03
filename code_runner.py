@@ -5,10 +5,14 @@ from blessings import Terminal
 
 from config import loadConfig
 from utils import run
+from test_data import TEST_TRIANGLES
 
 term = Terminal()
 
 BANDIT_EXECUTABLE = os.path.join(os.path.dirname(sys.executable), 'bandit')
+
+class StopExecution(Exception):
+    pass
 
 def run_all():
     config = loadConfig('settings.conf')
@@ -22,10 +26,11 @@ def run_all():
         try:
             check_bandit(path)
 
-            check_triangle(path, 'degenerate_triangle.txt', 5)
-            check_triangle(path, 'small_triangle.txt', 387)
-            check_triangle(path, 'large_triangle.txt', 3549)
+            for test in TEST_TRIANGLES:
+                check_triangle(path, **test)
 
+        except StopExecution:
+            raise
         except Exception as e:
             print(term.red('Got exception running {}'.format(solution)))
             print(term.red(str(e)))
@@ -39,7 +44,12 @@ def check_bandit(path):
         suppress_output=True,
         )
 
-def check_triangle(path, filename, expected):
+def check_triangle(path, filename=None, expected=None, conversion_func=None):
+    if not filename:
+        raise StopExecution('Test solutions have been improperly defined: filename is missing')
+    if not expected:
+        raise StopExecution('Test solutions have been improperly defined: expected is missing')
+
     data_directory = os.path.join(
             os.path.abspath(os.path.dirname(__file__)),
             'data')
@@ -47,7 +57,8 @@ def check_triangle(path, filename, expected):
     run(path,
         'python3 traversal.py {}'.format(
             os.path.join(data_directory, filename)),
-        expected=expected)
+        expected=expected,
+        conversion_func=conversion_func)
 
 if __name__ == '__main__':
     run_all()
