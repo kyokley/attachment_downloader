@@ -45,7 +45,7 @@ def test_answer(expected, actual, conversion_func=None):
 
     for idx, val in enumerate(expected):
         if val != split_actual[idx]:
-            return 'Value at {idx} does not match\nExpected: {expected} Actual: {actual}'.format(
+            return 'Value at index {idx} does not match\nExpected: {expected} Actual: {actual}'.format(
                         idx=idx,
                         expected=val,
                         actual=split_actual[idx])
