@@ -1,6 +1,12 @@
-from utils import assess_answer
+import mock
+import pytest
+import subprocess
 
-class TestAnswer(object):
+from utils import (assess_answer,
+                   run,
+                   )
+
+class TestAssessAnswer(object):
     def test_expected_not_iterable(self):
         expected = None
         actual = assess_answer(5, '5\n', conversion_func=int)
@@ -42,3 +48,125 @@ class TestAnswer(object):
         actual = assess_answer(['1', '2', '3', '4', '5'], '1\n2\n3\n4\n5\n')
 
         assert expected == actual
+
+class TestRun(object):
+    def setup_method(self):
+        self.run_patcher = mock.patch('utils.subprocess.run', autospec=True)
+        self.mock_run = self.run_patcher.start()
+
+        self.assess_answer_patcher = mock.patch('utils.assess_answer', autospec=True)
+        self.mock_assess_answer = self.assess_answer_patcher.start()
+
+        self.TIMEOUT_patcher = mock.patch('utils.TIMEOUT', 60)
+        self.TIMEOUT_patcher.start()
+
+        self.term_patcher = mock.patch('utils.term')
+        self.mock_term = self.term_patcher.start()
+
+        self.print_patcher = mock.patch('utils.print')
+        self.mock_print = self.print_patcher.start()
+
+    def teardown_method(self):
+        self.run_patcher.stop()
+        self.assess_answer_patcher.stop()
+        self.TIMEOUT_patcher.stop()
+        self.term_patcher.stop()
+        self.print_patcher.stop()
+
+    def test_got_expected_answer(self):
+        self.mock_assess_answer.return_value = None
+
+        expected = None
+        actual = run('test_directory', 'python main.py', expected='test_val')
+
+        assert expected == actual
+        self.mock_run.assert_called_once_with(['python', 'main.py'],
+                                              stdout=subprocess.PIPE,
+                                              stderr=subprocess.STDOUT,
+                                              cwd='test_directory',
+                                              timeout=60,
+                                              check=True,
+                                              encoding='utf-8')
+        self.mock_assess_answer.assert_called_once_with('test_val',
+                                                        self.mock_run.return_value.stdout,
+                                                        conversion_func=None)
+        self.mock_term.green.assert_called_once_with('GOOD: python main.py')
+        assert not self.mock_term.red.called
+
+    def test_got_incorrect_answer(self):
+        self.mock_assess_answer.return_value = 'Got an incorrect answer'
+
+        expected = None
+        actual = run('test_directory', 'python main.py', expected='test_val')
+
+        assert expected == actual
+        self.mock_run.assert_called_once_with(['python', 'main.py'],
+                                              stdout=subprocess.PIPE,
+                                              stderr=subprocess.STDOUT,
+                                              cwd='test_directory',
+                                              timeout=60,
+                                              check=True,
+                                              encoding='utf-8')
+        self.mock_assess_answer.assert_called_once_with('test_val',
+                                                        self.mock_run.return_value.stdout,
+                                                        conversion_func=None)
+        assert not self.mock_term.green.called
+
+        # I wouldn't normally use assert_any_call but I couldn't figure out how to handle the
+        # implicit call to __str__ on the term object
+        self.mock_term.red.assert_any_call('FAILED: python main.py')
+        self.mock_term.red.assert_any_call('Got:')
+        self.mock_term.red.assert_any_call('Got an incorrect answer')
+
+    def test_no_expected_good(self):
+        expected = None
+        actual = run('test_directory', 'python main.py')
+
+        assert expected == actual
+        self.mock_run.assert_called_once_with(['python', 'main.py'],
+                                              stdout=subprocess.PIPE,
+                                              stderr=subprocess.STDOUT,
+                                              cwd='test_directory',
+                                              timeout=60,
+                                              check=True,
+                                              encoding='utf-8')
+        self.mock_print.assert_called_once_with(self.mock_run.return_value.stdout)
+        assert not self.mock_assess_answer.called
+        assert not self.mock_term.green.called
+        assert not self.mock_term.red.called
+
+    def test_no_expected_bad(self):
+        self.mock_run.side_effect = subprocess.CalledProcessError(1, 'python main.py')
+        with pytest.raises(subprocess.CalledProcessError):
+            run('test_directory', 'python main.py')
+
+        self.mock_run.assert_called_once_with(['python', 'main.py'],
+                                              stdout=subprocess.PIPE,
+                                              stderr=subprocess.STDOUT,
+                                              cwd='test_directory',
+                                              timeout=60,
+                                              check=True,
+                                              encoding='utf-8')
+        assert not self.mock_print.called
+        assert not self.mock_assess_answer.called
+        assert not self.mock_term.green.called
+        assert not self.mock_term.red.called
+
+    def test_no_expected_suppress_output(self):
+        expected = None
+        actual = run('test_directory', 'python main.py', suppress_output=True)
+
+        assert expected == actual
+        self.mock_run.assert_called_once_with(['python', 'main.py'],
+                                              stdout=subprocess.PIPE,
+                                              stderr=subprocess.STDOUT,
+                                              cwd='test_directory',
+                                              timeout=60,
+                                              check=True,
+                                              encoding='utf-8')
+        assert not self.mock_assess_answer.called
+        self.mock_term.green.assert_called_once_with('GOOD: python main.py')
+        assert not self.mock_term.red.called
+
+    def test_check_failed(self):
+        pass
