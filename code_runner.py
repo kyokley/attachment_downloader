@@ -45,6 +45,8 @@ def check_bandit(path):
         )
 
 def check_triangle(path, filename=None, expected=None, conversion_func=None):
+    # filename and expected are actually required args for the function but I define them
+    # as kwargs to allow ** unpacking of the test values
     if not filename:
         raise StopExecution('Test solutions have been improperly defined: filename is missing')
     if not expected:
