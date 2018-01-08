@@ -168,5 +168,19 @@ class TestRun(object):
         self.mock_term.green.assert_called_once_with('GOOD: python main.py')
         assert not self.mock_term.red.called
 
-    def test_check_failed(self):
-        pass
+    def test_timeout_triggered(self):
+        self.mock_run.side_effect = subprocess.TimeoutExpired('python main.py', 60)
+        with pytest.raises(subprocess.TimeoutExpired):
+            run('test_directory', 'python main.py')
+
+        self.mock_run.assert_called_once_with(['python', 'main.py'],
+                                              stdout=subprocess.PIPE,
+                                              stderr=subprocess.STDOUT,
+                                              cwd='test_directory',
+                                              timeout=60,
+                                              check=True,
+                                              encoding='utf-8')
+        assert not self.mock_print.called
+        assert not self.mock_assess_answer.called
+        assert not self.mock_term.green.called
+        assert not self.mock_term.red.called
