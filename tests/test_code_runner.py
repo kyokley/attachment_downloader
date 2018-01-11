@@ -4,6 +4,7 @@ import pytest
 from code_runner import (check_bandit,
                          check_triangle,
                          StopExecution,
+                         run_all,
                          )
 
 class TestCheckBandit(object):
@@ -57,3 +58,77 @@ class TestCheckTriangle(object):
                                               'python3 traversal.py test_abspath/data/test_filename',
                                               expected=[5],
                                               conversion_func=None)
+
+class TestRunAll(object):
+    def setup_method(self):
+        self.loadConfig_patcher = mock.patch('code_runner.loadConfig')
+        self.mock_loadConfig = self.loadConfig_patcher.start()
+
+        self.listdir_patcher = mock.patch('code_runner.os.listdir')
+        self.mock_listdir = self.listdir_patcher.start()
+
+        self.check_bandit_patcher = mock.patch('code_runner.check_bandit')
+        self.mock_check_bandit = self.check_bandit_patcher.start()
+
+        self.check_triangle_patcher = mock.patch('code_runner.check_triangle')
+        self.mock_check_triangle = self.check_triangle_patcher.start()
+
+        self.TEST_TRIANGLES_patcher = mock.patch('code_runner.TEST_TRIANGLES',
+                                                 [{'filename': 'test_file1',
+                                                   'expected': [5]},
+                                                   {'filename': 'test_file2',
+                                                    'expected': [1, 2, 3]},
+                                                   ])
+        self.TEST_TRIANGLES_patcher.start()
+
+        self.term_patcher = mock.patch('code_runner.term')
+        self.mock_term = self.term_patcher.start()
+
+        self.mock_config = mock.MagicMock()
+        self.mock_config.get.return_value = 'test_local_dir'
+
+        self.mock_loadConfig.return_value = self.mock_config
+
+        self.mock_listdir.return_value = ['test_solution']
+
+    def teardown_method(self):
+        self.loadConfig_patcher.stop()
+        self.listdir_patcher.stop()
+        self.check_bandit_patcher.stop()
+        self.check_triangle_patcher.stop()
+        self.TEST_TRIANGLES_patcher.stop()
+        self.term_patcher.stop()
+
+    def test_StopExecution_reraises(self):
+        self.mock_check_bandit.side_effect = StopExecution('FAIL')
+        with pytest.raises(StopExecution):
+            run_all()
+
+        assert not self.mock_check_triangle.called
+
+    def test_exceptions_continue(self):
+        self.mock_check_bandit.side_effect = Exception('FAIL')
+
+        expected = None
+        actual = run_all()
+
+        assert expected == actual
+        self.mock_check_bandit.assert_called_once_with('test_local_dir/test_solution')
+        self.mock_term.red.assert_any_call('Got exception running test_solution')
+        assert not self.mock_check_triangle.called
+
+    def test_run_all(self):
+        expected = None
+        actual = run_all()
+
+        assert expected == actual
+        assert not self.mock_term.red.called
+        self.mock_check_bandit.assert_called_once_with('test_local_dir/test_solution')
+        self.mock_check_triangle.assert_has_calls([mock.call('test_local_dir/test_solution',
+                                                             filename='test_file1',
+                                                             expected=[5]),
+                                                   mock.call('test_local_dir/test_solution',
+                                                             filename='test_file2',
+                                                             expected=[1, 2, 3]),
+                                                   ])
+

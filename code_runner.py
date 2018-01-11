@@ -34,7 +34,8 @@ def run_all():
         except Exception as e:
             print(term.red('Got exception running {}'.format(solution)))
             print(term.red(str(e)))
-            print(term.red(e.stdout))
+            if hasattr(e, 'stdout'):
+                print(term.red(e.stdout))
 
         print()
 
