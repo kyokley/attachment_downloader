@@ -17,6 +17,7 @@ class StopExecution(Exception):
 def run_all():
     config = loadConfig('settings.conf')
     LOCAL_DIRECTORY = config.get('ATTACHMENTS', 'LOCAL_DIRECTORY')
+    EXECUTABLE = config.get('EXECUTION', 'EXECUTABLE')
 
     solutions = os.listdir(LOCAL_DIRECTORY)
 
@@ -27,7 +28,7 @@ def run_all():
             check_bandit(path)
 
             for test in TEST_TRIANGLES:
-                check_triangle(path, **test)
+                check_triangle(path, executable=EXECUTABLE, **test)
 
         except StopExecution:
             raise
@@ -45,7 +46,7 @@ def check_bandit(path):
         suppress_output=True,
         )
 
-def check_triangle(path, filename=None, expected=None, conversion_func=None):
+def check_triangle(path, executable='traversal.py', filename=None, expected=None, conversion_func=None):
     # filename and expected are actually required args for the function but I define them
     # as kwargs to allow ** unpacking of the test values
     if not filename:
@@ -58,8 +59,9 @@ def check_triangle(path, filename=None, expected=None, conversion_func=None):
             'data')
 
     run(path,
-        'python3 traversal.py {}'.format(
-            os.path.join(data_directory, filename)),
+        'python3 {} {}'.format(executable,
+                               os.path.join(data_directory, filename)),
+        executable=executable,
         expected=expected,
         conversion_func=conversion_func)
 

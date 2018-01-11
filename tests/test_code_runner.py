@@ -51,11 +51,12 @@ class TestCheckTriangle(object):
 
     def test_check(self):
         expected = None
-        actual = check_triangle('test_path', filename='test_filename', expected=[5])
+        actual = check_triangle('test_path', executable='traversal.py', filename='test_filename', expected=[5])
 
         assert expected == actual
         self.mock_run.assert_called_once_with('test_path',
                                               'python3 traversal.py test_abspath/data/test_filename',
+                                              executable='traversal.py',
                                               expected=[5],
                                               conversion_func=None)
 
@@ -85,7 +86,8 @@ class TestRunAll(object):
         self.mock_term = self.term_patcher.start()
 
         self.mock_config = mock.MagicMock()
-        self.mock_config.get.return_value = 'test_local_dir'
+        self.mock_config.get.side_effect = ['test_local_dir',
+                                            'test_executable']
 
         self.mock_loadConfig.return_value = self.mock_config
 
@@ -125,9 +127,11 @@ class TestRunAll(object):
         assert not self.mock_term.red.called
         self.mock_check_bandit.assert_called_once_with('test_local_dir/test_solution')
         self.mock_check_triangle.assert_has_calls([mock.call('test_local_dir/test_solution',
+                                                             executable='test_executable',
                                                              filename='test_file1',
                                                              expected=[5]),
                                                    mock.call('test_local_dir/test_solution',
+                                                             executable='test_executable',
                                                              filename='test_file2',
                                                              expected=[1, 2, 3]),
                                                    ])

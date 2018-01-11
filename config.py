@@ -13,6 +13,7 @@ def createConfig(path):
     host = input(term.yellow('Enter host: '))
     username = input(term.yellow('Enter username: '))
     folder = input(term.yellow('Enter folder: '))
+    executable = input(term.yellow('Enter executable: '))
 
     config['IMAP'] = {'HOST': host,
                       'USERNAME': username,
@@ -20,7 +21,7 @@ def createConfig(path):
 
     local_directory = input(term.yellow('Enter local directory: '))
     config['ATTACHMENTS'] = {'LOCAL_DIRECTORY': local_directory}
-
+    config['EXECUTION'] = {'EXECUTABLE': executable}
 
     with open(path, 'w') as f:
         config.write(f)
