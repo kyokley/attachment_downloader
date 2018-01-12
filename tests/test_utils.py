@@ -66,12 +66,18 @@ class TestRun(object):
         self.print_patcher = mock.patch('utils.print')
         self.mock_print = self.print_patcher.start()
 
+        self.walk_patcher = mock.patch('utils.os.walk')
+        self.mock_walk = self.walk_patcher.start()
+
+        #self.mock_walk.return_value = [
+
     def teardown_method(self):
         self.run_patcher.stop()
         self.assess_answer_patcher.stop()
         self.TIMEOUT_patcher.stop()
         self.term_patcher.stop()
         self.print_patcher.stop()
+        self.walk_patcher.stop()
 
     def test_got_expected_answer(self):
         self.mock_assess_answer.return_value = None
@@ -184,3 +190,9 @@ class TestRun(object):
         assert not self.mock_assess_answer.called
         assert not self.mock_term.green.called
         assert not self.mock_term.red.called
+
+    def test_executable_modifies_directory(self):
+        assert False
+
+    def test_executable_not_found_raises(self):
+        assert False
