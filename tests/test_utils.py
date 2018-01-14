@@ -192,7 +192,40 @@ class TestRun(object):
         assert not self.mock_term.red.called
 
     def test_executable_modifies_directory(self):
-        assert False
+        self.mock_walk.return_value = [('root',
+                                        ['dir1', 'dir2'],
+                                        ['test1.py', 'main.py', 'test2.py'],
+                                        )]
+        self.mock_assess_answer.return_value = None
+
+        expected = None
+        actual = run('test_directory', 'python main.py', expected='test_val', executable='main.py')
+
+        assert expected == actual
+        self.mock_run.assert_called_once_with(['python', 'main.py'],
+                                              stdout=subprocess.PIPE,
+                                              stderr=subprocess.STDOUT,
+                                              cwd='root',
+                                              timeout=60,
+                                              check=True,
+                                              encoding='utf-8')
+        self.mock_assess_answer.assert_called_once_with('test_val',
+                                                        self.mock_run.return_value.stdout,
+                                                        conversion_func=None)
+        self.mock_term.green.assert_called_once_with('GOOD: python main.py')
+        assert not self.mock_term.red.called
 
     def test_executable_not_found_raises(self):
-        assert False
+        self.mock_walk.return_value = [('root',
+                                        ['dir1', 'dir2'],
+                                        ['test1.py', 'main.py', 'test2.py'],
+                                        )]
+        self.mock_assess_answer.return_value = None
+
+        with pytest.raises(Exception):
+            run('test_directory', 'python main.py', expected='test_val', executable='does_not_exist.py')
+
+        assert not self.mock_print.called
+        assert not self.mock_assess_answer.called
+        assert not self.mock_term.green.called
+        assert not self.mock_term.red.called
