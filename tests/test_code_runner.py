@@ -50,7 +50,7 @@ class TestCheckTriangle(object):
             check_triangle('test_path', filename='test_filename')
 
     def test_check(self):
-        expected = None
+        expected = self.mock_run.return_value
         actual = check_triangle('test_path', executable='traversal.py', filename='test_filename', expected=[5])
 
         assert expected == actual
@@ -101,6 +101,8 @@ class TestRunAll(object):
 
         self.mock_listdir.return_value = ['test_solution']
 
+        self.mock_check_triangle.side_effect = [True, True]
+
     def teardown_method(self):
         self.loadConfig_patcher.stop()
         self.listdir_patcher.stop()
@@ -121,7 +123,7 @@ class TestRunAll(object):
     def test_exceptions_continue(self):
         self.mock_check_bandit.side_effect = Exception('FAIL')
 
-        expected = None
+        expected = (set(), {'test_solution'})
         actual = run_all()
 
         assert expected == actual
@@ -130,7 +132,7 @@ class TestRunAll(object):
         assert not self.mock_check_triangle.called
 
     def test_run_all(self):
-        expected = None
+        expected = ({'test_solution'}, set())
         actual = run_all()
 
         assert expected == actual

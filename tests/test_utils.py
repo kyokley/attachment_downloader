@@ -82,7 +82,7 @@ class TestRun(object):
     def test_got_expected_answer(self):
         self.mock_assess_answer.return_value = None
 
-        expected = None
+        expected = True
         actual = run('test_directory', 'python main.py', expected='test_val')
 
         assert expected == actual
@@ -102,7 +102,7 @@ class TestRun(object):
     def test_got_incorrect_answer(self):
         self.mock_assess_answer.return_value = 'Got an incorrect answer'
 
-        expected = None
+        expected = False
         actual = run('test_directory', 'python main.py', expected='test_val')
 
         assert expected == actual
@@ -125,7 +125,7 @@ class TestRun(object):
         self.mock_term.red.assert_any_call('Got an incorrect answer')
 
     def test_no_expected_good(self):
-        expected = None
+        expected = True
         actual = run('test_directory', 'python main.py')
 
         assert expected == actual
@@ -159,7 +159,7 @@ class TestRun(object):
         assert not self.mock_term.red.called
 
     def test_no_expected_suppress_output(self):
-        expected = None
+        expected = True
         actual = run('test_directory', 'python main.py', suppress_output=True)
 
         assert expected == actual
@@ -198,7 +198,7 @@ class TestRun(object):
                                         )]
         self.mock_assess_answer.return_value = None
 
-        expected = None
+        expected = True
         actual = run('test_directory', 'python main.py', expected='test_val', executable='main.py')
 
         assert expected == actual
