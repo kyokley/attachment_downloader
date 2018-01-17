@@ -1,5 +1,6 @@
 import os
 import sys
+from datetime import datetime
 
 from blessings import Terminal
 
@@ -23,6 +24,7 @@ def run_all():
 
     passes = set()
     fails = set()
+    timings = dict()
 
     for solution in solutions:
         print('Running {}'.format(term.blue(solution)))
@@ -34,6 +36,7 @@ def run_all():
             venv_path = create_virtualenv(path)
             install_requirements(venv_path, path)
 
+            start_time = datetime.now()
             for test in TEST_TRIANGLES:
                 result = check_triangle(path,
                                         python_executable=os.path.join(venv_path, 'bin', 'python3'),
@@ -41,6 +44,8 @@ def run_all():
                                         **test)
                 if not result:
                     fails.add(solution)
+            finish_time = datetime.now()
+            timings[solution] = finish_time - start_time
 
         except StopExecution:
             raise
@@ -48,13 +53,13 @@ def run_all():
             fails.add(solution)
             print(term.red('Got exception running {}'.format(solution)))
             print(term.red(str(e)))
-            if hasattr(e, 'stdout'):
+            if hasattr(e, 'stdout') and e.stdout:
                 print(term.red(e.stdout))
 
         print()
 
     passes.difference_update(fails)
-    return passes, fails
+    return passes, fails, timings
 
 def check_bandit(path):
     run(path,

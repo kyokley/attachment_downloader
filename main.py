@@ -15,6 +15,7 @@ def main():
     HOST = config.get('IMAP', 'HOST')
     USERNAME = config.get('IMAP', 'USERNAME')
     FOLDER = config.get('IMAP', 'FOLDER')
+    FILENAME = config.get('RESULTS', 'FILENAME')
     PASSWORD = getpass.getpass()
 
     LOCAL_DIRECTORY = config.get('ATTACHMENTS', 'LOCAL_DIRECTORY')
@@ -37,12 +38,21 @@ def main():
 
     run_code = input('Run code now? (y/N) ')
     if run_code.lower() in ('y', 'yes'):
-        passes, fails = run_all()
+        passes, fails, timings = run_all()
 
         print('Correct Solutions:')
         for solution in passes:
-            print(term.blue(solution))
+            print('{solution}\n\t{time}'.format(solution=term.blue(solution),
+                                                time=term.magenta(str(timings[solution]))))
+            print()
 
+        if FILENAME:
+            with open(FILENAME, 'w') as f:
+                for solution in passes:
+                    f.write('{solution} {time}\n'.format(solution=solution,
+                                                         time=timings[solution]))
+
+    print()
     print('All Done')
 
 if __name__ == '__main__':
