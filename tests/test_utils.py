@@ -1,9 +1,12 @@
 import mock
 import pytest
 import subprocess
+import os
 
 from utils import (assess_answer,
                    run,
+                   create_virtualenv,
+                   install_requirements,
                    )
 
 class TestAssessAnswer(object):
@@ -68,8 +71,6 @@ class TestRun(object):
 
         self.walk_patcher = mock.patch('utils.os.walk')
         self.mock_walk = self.walk_patcher.start()
-
-        #self.mock_walk.return_value = [
 
     def teardown_method(self):
         self.run_patcher.stop()
@@ -229,3 +230,108 @@ class TestRun(object):
         assert not self.mock_assess_answer.called
         assert not self.mock_term.green.called
         assert not self.mock_term.red.called
+
+class TestCreateVirtualenv(object):
+    def setup_method(self):
+        self.exists_patcher = mock.patch('utils.os.path.exists')
+        self.mock_exists = self.exists_patcher.start()
+
+        self.abspath_patcher = mock.patch('utils.os.path.abspath')
+        self.mock_abspath = self.abspath_patcher.start()
+
+        self.run_patcher = mock.patch('utils.subprocess.run')
+        self.mock_run = self.run_patcher.start()
+
+        self.mock_abspath.return_value = 'test_abspath'
+
+    def teardown_method(self):
+        self.exists_patcher.stop()
+        self.run_patcher.stop()
+        self.abspath_patcher.stop()
+
+    def test_venv_exists(self):
+        self.mock_exists.return_value = True
+
+        expected = self.mock_abspath.return_value
+        actual = create_virtualenv('test_dir')
+
+        assert expected == actual
+        self.mock_exists.assert_called_once_with(self.mock_abspath.return_value)
+        assert not self.mock_run.called
+
+    def test_venv_does_not_exist(self):
+        self.mock_exists.return_value = False
+
+        expected = self.mock_abspath.return_value
+        actual = create_virtualenv('test_dir')
+
+        assert expected == actual
+        self.mock_exists.assert_called_once_with(self.mock_abspath.return_value)
+        self.mock_run.assert_called_once_with(['virtualenv',
+                                               'test_abspath',
+                                               '-p',
+                                               'python3.6',
+                                               '--no-download'],
+                                              check=True)
+
+class TestInstallRequirements(object):
+    def setup_method(self):
+        self.walk_patcher = mock.patch('utils.os.walk')
+        self.mock_walk = self.walk_patcher.start()
+
+        self.run_patcher = mock.patch('utils.subprocess.run')
+        self.mock_run = self.run_patcher.start()
+
+        self.mock_walk.return_value = [('root',
+                                        ['dir1', 'dir2'],
+                                        ['test1.py', 'main.py', 'test2.py', 'requirements.txt'],
+                                        )]
+
+        self.orig_proxy = os.environ.get('PIP_PROXY', '')
+
+    def teardown_method(self):
+        self.walk_patcher.stop()
+        self.run_patcher.stop()
+
+        os.environ['PIP_PROXY'] = self.orig_proxy
+
+    def test_no_requirements_file(self):
+        self.mock_walk.return_value = [('root',
+                                        ['dir1', 'dir2'],
+                                        ['test1.py', 'main.py', 'test2.py'],
+                                        )]
+
+        expected = None
+        actual = install_requirements('test_venv', 'test_dir')
+
+        assert expected == actual
+        self.mock_walk.assert_called_once_with('test_dir')
+        assert not self.mock_run.called
+
+    def test_requirements_no_proxy(self):
+        os.environ['PIP_PROXY'] = ''
+
+        expected = None
+        actual = install_requirements('test_venv', 'test_dir')
+        assert expected == actual
+        self.mock_walk.assert_called_once_with('test_dir')
+        self.mock_run.assert_called_once_with(['test_venv/bin/pip',
+                                               'install',
+                                               '-r',
+                                               'root/requirements.txt'],
+                                              check=True)
+
+    def test_requirements_with_proxy(self):
+        os.environ['PIP_PROXY'] = 'test_proxy'
+
+        expected = None
+        actual = install_requirements('test_venv', 'test_dir')
+        assert expected == actual
+        self.mock_walk.assert_called_once_with('test_dir')
+        self.mock_run.assert_called_once_with(['test_venv/bin/pip',
+                                               'install',
+                                               '-r',
+                                               'root/requirements.txt',
+                                               '--proxy',
+                                               'test_proxy'],
+                                              check=True)
