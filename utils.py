@@ -76,9 +76,17 @@ def install_requirements(venv_path, directory):
             break
 
     if requirements_path:
-        split_cmd = shlex.split('{pip} install -r {requirements_path}'.format(
-            pip=os.path.join(venv_path, 'bin', 'pip'),
-            requirements_path=requirements_path))
+        if os.environ.get('PIP_PROXY'):
+            split_cmd = shlex.split('{pip} install -r {requirements_path} --proxy {proxy}'.format(
+                pip=os.path.join(venv_path, 'bin', 'pip'),
+                requirements_path=requirements_path,
+                proxy=os.environ.get('PIP_PROXY')))
+        else:
+            split_cmd = shlex.split('{pip} install -r {requirements_path}'.format(
+                pip=os.path.join(venv_path, 'bin', 'pip'),
+                requirements_path=requirements_path,
+                ))
+
         subprocess.run(split_cmd,
                        check=True)
 
