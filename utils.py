@@ -54,7 +54,7 @@ def run(directory, cmd, executable=None, expected=SENTINEL, suppress_output=Fals
             print(term.red(failure_message))
 
 def create_virtualenv(directory):
-    venv_path = os.path.join(directory, '.venv')
+    venv_path = os.path.abspath(os.path.join(directory, '.venv'))
     if os.path.exists(venv_path):
         print(term.yellow('{} already exists. Continuing...'.format(venv_path)))
     else:
