@@ -1,5 +1,4 @@
 import os
-import hashlib
 import email
 from imaplib import (IMAP4_SSL,
                      IMAP4,
@@ -11,6 +10,14 @@ from blessings import Terminal
 term = Terminal()
 
 OK = 'OK'
+
+def _unique_id():
+    count = 1
+    while True:
+        yield count
+        count += 1
+
+id_gen = _unique_id()
 
 class NotConnected(Exception):
     pass
@@ -40,19 +47,14 @@ class ImapServer(object):
             self._select(self.folder)
 
     @staticmethod
-    def _unique_filename(filename, from_addr=None):
+    def _unique_filename(filename):
         ext = archive_extension(filename)
         basename = archive_basename(filename)
+        unique_id = next(id_gen)
 
-        if not from_addr:
-            hash_val = os.urandom(3).hex()
-        else:
-            sha256 = hashlib.sha256(from_addr.encode('utf-8'))
-            hash_val = sha256.hexdigest()[:6]
-
-        return '{basename}_{hash_val}{ext}'.format(basename=basename,
-                                                   hash_val=hash_val,
-                                                   ext=ext)
+        return '{basename}_{unique_id}{ext}'.format(basename=basename,
+                                                    unique_id=unique_id,
+                                                    ext=ext)
 
     def _login(self):
         typ, data = self._connection.login(self.username, self.password)
@@ -117,7 +119,7 @@ class ImapServer(object):
                     continue
 
                 orig_filename = part.get_filename().lower()
-                uniq_filename = self._unique_filename(orig_filename, from_addr=mail.get('From'))
+                uniq_filename = self._unique_filename(orig_filename)
 
                 full_path = os.path.join(directory, uniq_filename)
 
