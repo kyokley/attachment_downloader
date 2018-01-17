@@ -21,8 +21,12 @@ def run_all():
 
     solutions = os.listdir(LOCAL_DIRECTORY)
 
+    passes = set()
+    fails = set()
+
     for solution in solutions:
         print('Running {}'.format(term.blue(solution)))
+        passes.add(solution)
         path = os.path.join(LOCAL_DIRECTORY, solution)
         try:
             check_bandit(path)
@@ -31,20 +35,26 @@ def run_all():
             install_requirements(venv_path, path)
 
             for test in TEST_TRIANGLES:
-                check_triangle(path,
-                               python_executable=os.path.join(venv_path, 'bin', 'python3'),
-                               executable=EXECUTABLE,
-                               **test)
+                result = check_triangle(path,
+                                        python_executable=os.path.join(venv_path, 'bin', 'python3'),
+                                        executable=EXECUTABLE,
+                                        **test)
+                if not result:
+                    fails.add(solution)
 
         except StopExecution:
             raise
         except Exception as e:
+            fails.add(solution)
             print(term.red('Got exception running {}'.format(solution)))
             print(term.red(str(e)))
             if hasattr(e, 'stdout'):
                 print(term.red(e.stdout))
 
         print()
+
+    passes.difference_update(fails)
+    return passes, fails
 
 def check_bandit(path):
     run(path,
@@ -69,13 +79,13 @@ def check_triangle(path,
             os.path.abspath(os.path.dirname(__file__)),
             'data')
 
-    run(path,
-        '{} {} {}'.format(python_executable,
-                          executable,
-                          os.path.join(data_directory, filename)),
-        executable=executable,
-        expected=expected,
-        conversion_func=conversion_func)
+    return run(path,
+               '{} {} {}'.format(python_executable,
+                                 executable,
+                                 os.path.join(data_directory, filename)),
+               executable=executable,
+               expected=expected,
+               conversion_func=conversion_func)
 
 if __name__ == '__main__':
     run_all()

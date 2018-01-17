@@ -42,16 +42,20 @@ def run(directory, cmd, executable=None, expected=SENTINEL, suppress_output=Fals
             print(completed_process.stdout)
         else:
             print(term.green('GOOD: {}'.format(cmd)))
+
+        return True
     else:
         failure_message = assess_answer(expected, completed_process.stdout, conversion_func=conversion_func)
         if not failure_message:
             print(term.green('GOOD: {}'.format(cmd)))
+            return True
         else:
             print(term.red('FAILED: {}'.format(cmd)))
             if executable:
                 print(term.red('Executed in {}'.format(directory)))
             print(term.red('Got:'))
             print(term.red(failure_message))
+            return False
 
 def create_virtualenv(directory):
     venv_path = os.path.abspath(os.path.join(directory, '.venv'))

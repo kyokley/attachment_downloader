@@ -37,7 +37,11 @@ def main():
 
     run_code = input('Run code now? (y/N) ')
     if run_code.lower() in ('y', 'yes'):
-        run_all()
+        passes, fails = run_all()
+
+        print('Correct Solutions:')
+        for solution in passes:
+            print(term.blue(solution))
 
     print('All Done')
 
