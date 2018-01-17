@@ -8,6 +8,7 @@ term = Terminal()
 SENTINEL = object()
 
 TIMEOUT = 60
+REQUIREMENTS = 'requirements.txt'
 
 def run(directory, cmd, executable=None, expected=SENTINEL, suppress_output=False, conversion_func=None):
     if executable:
@@ -51,6 +52,35 @@ def run(directory, cmd, executable=None, expected=SENTINEL, suppress_output=Fals
                 print(term.red('Executed in {}'.format(directory)))
             print(term.red('Got:'))
             print(term.red(failure_message))
+
+def create_virtualenv(directory):
+    venv_path = os.path.join(directory, '.venv')
+    if os.path.exists(venv_path):
+        print(term.yellow('{} already exists. Continuing...'.format(venv_path)))
+    else:
+        split_cmd = shlex.split('virtualenv {} -p python3.6 --no-download'.format(venv_path))
+
+        subprocess.run(split_cmd,
+                       check=True)
+    return venv_path
+
+def install_requirements(venv_path, directory):
+    requirements_path = None
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if file == REQUIREMENTS:
+                requirements_path = os.path.join(root, file)
+                break
+
+        if requirements_path:
+            break
+
+    if requirements_path:
+        split_cmd = shlex.split('{pip} install -r {requirements_path}'.format(
+            pip=os.path.join(venv_path, 'bin', 'pip'),
+            requirements_path=requirements_path))
+        subprocess.run(split_cmd,
+                       check=True)
 
 def assess_answer(expected, actual, conversion_func=None):
     if not conversion_func:

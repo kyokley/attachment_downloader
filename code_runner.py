@@ -4,7 +4,7 @@ import sys
 from blessings import Terminal
 
 from config import loadConfig
-from utils import run
+from utils import run, create_virtualenv, install_requirements
 from test_data import TEST_TRIANGLES
 
 term = Terminal()
@@ -27,8 +27,14 @@ def run_all():
         try:
             check_bandit(path)
 
+            venv_path = create_virtualenv(path)
+            install_requirements(venv_path, path)
+
             for test in TEST_TRIANGLES:
-                check_triangle(path, executable=EXECUTABLE, **test)
+                check_triangle(path,
+                               python_executable=os.path.join(venv_path, 'bin', 'python3'),
+                               executable=EXECUTABLE,
+                               **test)
 
         except StopExecution:
             raise
@@ -46,7 +52,12 @@ def check_bandit(path):
         suppress_output=True,
         )
 
-def check_triangle(path, executable='traversal.py', filename=None, expected=None, conversion_func=None):
+def check_triangle(path,
+        python_executable='python3',
+        executable='traversal.py',
+        filename=None,
+        expected=None,
+        conversion_func=None):
     # filename and expected are actually required args for the function but I define them
     # as kwargs to allow ** unpacking of the test values
     if not filename:
@@ -59,8 +70,9 @@ def check_triangle(path, executable='traversal.py', filename=None, expected=None
             'data')
 
     run(path,
-        'python3 {} {}'.format(executable,
-                               os.path.join(data_directory, filename)),
+        '{} {} {}'.format(python_executable,
+                          executable,
+                          os.path.join(data_directory, filename)),
         executable=executable,
         expected=expected,
         conversion_func=conversion_func)

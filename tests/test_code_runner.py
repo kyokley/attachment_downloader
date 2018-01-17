@@ -85,6 +85,14 @@ class TestRunAll(object):
         self.term_patcher = mock.patch('code_runner.term')
         self.mock_term = self.term_patcher.start()
 
+        self.create_virtualenv_patcher = mock.patch('code_runner.create_virtualenv')
+        self.mock_create_virtualenv = self.create_virtualenv_patcher.start()
+
+        self.install_requirements_patcher = mock.patch('code_runner.install_requirements')
+        self.mock_install_requirements = self.install_requirements_patcher.start()
+
+        self.mock_create_virtualenv.return_value = 'test_venv'
+
         self.mock_config = mock.MagicMock()
         self.mock_config.get.side_effect = ['test_local_dir',
                                             'test_executable']
@@ -100,6 +108,8 @@ class TestRunAll(object):
         self.check_triangle_patcher.stop()
         self.TEST_TRIANGLES_patcher.stop()
         self.term_patcher.stop()
+        self.create_virtualenv_patcher.stop()
+        self.install_requirements_patcher.stop()
 
     def test_StopExecution_reraises(self):
         self.mock_check_bandit.side_effect = StopExecution('FAIL')
@@ -126,13 +136,17 @@ class TestRunAll(object):
         assert expected == actual
         assert not self.mock_term.red.called
         self.mock_check_bandit.assert_called_once_with('test_local_dir/test_solution')
+        self.mock_create_virtualenv.assert_called_once_with('test_local_dir/test_solution')
+        self.mock_install_requirements.assert_called_once_with('test_venv', 'test_local_dir/test_solution')
         self.mock_check_triangle.assert_has_calls([mock.call('test_local_dir/test_solution',
                                                              executable='test_executable',
                                                              filename='test_file1',
-                                                             expected=[5]),
+                                                             expected=[5],
+                                                             python_executable='test_venv/bin/python3'),
                                                    mock.call('test_local_dir/test_solution',
                                                              executable='test_executable',
                                                              filename='test_file2',
-                                                             expected=[1, 2, 3]),
+                                                             expected=[1, 2, 3],
+                                                             python_executable='test_venv/bin/python3'),
                                                    ])
 
