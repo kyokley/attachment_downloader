@@ -1,5 +1,6 @@
 import mock
 import pytest
+from datetime import timedelta
 
 from code_runner import (check_bandit,
                          check_triangle,
@@ -123,7 +124,7 @@ class TestRunAll(object):
     def test_exceptions_continue(self):
         self.mock_check_bandit.side_effect = Exception('FAIL')
 
-        expected = (set(), {'test_solution'})
+        expected = (set(), {'test_solution'}, {})
         actual = run_all()
 
         assert expected == actual
@@ -135,7 +136,8 @@ class TestRunAll(object):
         expected = ({'test_solution'}, set())
         actual = run_all()
 
-        assert expected == actual
+        assert (expected[0], expected[1]) == (actual[0], actual[1])
+        assert 'test_solution' in actual[2] and isinstance(actual[2]['test_solution'], timedelta)
         assert not self.mock_term.red.called
         self.mock_check_bandit.assert_called_once_with('test_local_dir/test_solution')
         self.mock_create_virtualenv.assert_called_once_with('test_local_dir/test_solution')
