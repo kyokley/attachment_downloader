@@ -4,42 +4,106 @@ from imap_server import ImapServer
 
 class TestUniqueFilename(object):
     def setup_method(self):
-        self.id_gen_patcher = mock.patch('imap_server.id_gen')
-        self.mock_id_gen = self.id_gen_patcher.start()
+        self.sha256_patcher = mock.patch('imap_server.hashlib.sha256')
+        self.mock_sha256 = self.sha256_patcher.start()
 
-        self.mock_id_gen.__next__.return_value = 100
+        self.mock_sha256.return_value.hexdigest.return_value = 'e3b0c4'
 
     def teardown_method(self):
-        self.id_gen_patcher.stop()
+        self.sha256_patcher.stop()
 
     def test_tar_gz_no_from_addr(self):
         filename = 'test.tar.gz'
 
-        expected = 'test_100.tar.gz'
+        expected = 'test_e3b0c4.tar.gz'
         actual = ImapServer._unique_filename(filename)
 
         assert expected == actual
+        self.mock_sha256.return_value.update.assert_has_calls([mock.call(b''),
+                                                               mock.call(b''),
+                                                               ])
+        self.mock_sha256.return_value.hexdigest.assert_called_once_with()
 
     def test_zip_no_from_addr(self):
         filename = 'test.zip'
 
-        expected = 'test_100.zip'
+        expected = 'test_e3b0c4.zip'
         actual = ImapServer._unique_filename(filename)
 
         assert expected == actual
+        self.mock_sha256.return_value.update.assert_has_calls([mock.call(b''),
+                                                               mock.call(b''),
+                                                               ])
+        self.mock_sha256.return_value.hexdigest.assert_called_once_with()
 
     def test_tar_gz_with_from_addr(self):
         filename = 'test.tar.gz'
 
-        expected = 'test_100.tar.gz'
-        actual = ImapServer._unique_filename(filename)
+        expected = 'test_e3b0c4.tar.gz'
+        actual = ImapServer._unique_filename(filename, from_addr='test@example.com')
 
         assert expected == actual
+        self.mock_sha256.return_value.update.assert_has_calls([mock.call(b'test@example.com'),
+                                                               mock.call(b''),
+                                                               ])
+        self.mock_sha256.return_value.hexdigest.assert_called_once_with()
 
     def test_zip_with_from_addr(self):
         filename = 'test.zip'
 
-        expected = 'test_100.zip'
-        actual = ImapServer._unique_filename(filename)
+        expected = 'test_e3b0c4.zip'
+        actual = ImapServer._unique_filename(filename, from_addr='test@example.com')
 
         assert expected == actual
+        self.mock_sha256.return_value.update.assert_has_calls([mock.call(b'test@example.com'),
+                                                               mock.call(b''),
+                                                               ])
+        self.mock_sha256.return_value.hexdigest.assert_called_once_with()
+
+    def test_tar_gz_with_date(self):
+        filename = 'test.tar.gz'
+
+        expected = 'test_e3b0c4.tar.gz'
+        actual = ImapServer._unique_filename(filename, date='1-17-18')
+
+        assert expected == actual
+        self.mock_sha256.return_value.update.assert_has_calls([mock.call(b''),
+                                                               mock.call(b'1-17-18'),
+                                                               ])
+        self.mock_sha256.return_value.hexdigest.assert_called_once_with()
+
+    def test_zip_with_date(self):
+        filename = 'test.zip'
+
+        expected = 'test_e3b0c4.zip'
+        actual = ImapServer._unique_filename(filename, date='1-17-18')
+
+        assert expected == actual
+        self.mock_sha256.return_value.update.assert_has_calls([mock.call(b''),
+                                                               mock.call(b'1-17-18'),
+                                                               ])
+        self.mock_sha256.return_value.hexdigest.assert_called_once_with()
+
+    def test_tar_gz_with_date_with_from_addr(self):
+        filename = 'test.tar.gz'
+
+        expected = 'test_e3b0c4.tar.gz'
+        actual = ImapServer._unique_filename(filename, from_addr='test@example.com', date='1-17-18')
+
+        assert expected == actual
+        self.mock_sha256.return_value.update.assert_has_calls([mock.call(b'test@example.com'),
+                                                               mock.call(b'1-17-18'),
+                                                               ])
+        self.mock_sha256.return_value.hexdigest.assert_called_once_with()
+
+    def test_zip_with_date_with_from_addr(self):
+        filename = 'test.zip'
+
+        expected = 'test_e3b0c4.zip'
+        actual = ImapServer._unique_filename(filename, from_addr='test@example.com', date='1-17-18')
+
+        assert expected == actual
+        self.mock_sha256.return_value.update.assert_has_calls([mock.call(b'test@example.com'),
+                                                               mock.call(b'1-17-18'),
+                                                               ])
+        self.mock_sha256.return_value.hexdigest.assert_called_once_with()
