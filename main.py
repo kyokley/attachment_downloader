@@ -38,19 +38,21 @@ def main():
 
     run_code = input('Run code now? (y/N) ')
     if run_code.lower() in ('y', 'yes'):
-        passes, fails, timings = run_all()
+        results = run_all()
+        successes = [x for x in results if not x.failed]
+        successes.sort(key=lambda x: x.time)
 
         print('Correct Solutions:')
-        for solution in passes:
-            print('{solution}\n\t{time}'.format(solution=term.blue(solution),
-                                                time=term.magenta(str(timings[solution]))))
+        for result in successes:
+            print('{name}\n\t{time}'.format(name=term.blue(result.name),
+                                            time=term.magenta(str(result.time))))
             print()
 
         if FILENAME:
             with open(FILENAME, 'w') as f:
-                for solution in passes:
-                    f.write('{solution} {time}\n'.format(solution=solution,
-                                                         time=timings[solution]))
+                for result in successes:
+                    f.write('{name} {time}\n'.format(name=result.name,
+                                                     time=str(result.time)))
 
     print()
     print('All Done')

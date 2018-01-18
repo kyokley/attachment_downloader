@@ -15,6 +15,30 @@ BANDIT_EXECUTABLE = os.path.join(os.path.dirname(sys.executable), 'bandit')
 class StopExecution(Exception):
     pass
 
+class Result(object):
+    def __init__(self,
+                 name,
+                 time=None,
+                 failure_reason=None):
+        if not time and not failure_reason:
+            raise StopExecution('Improperly defined Result')
+
+        self.name = name
+        self.time = time
+        self.failure_reason = failure_reason
+
+    @property
+    def failed(self):
+        return bool(self.failure_reason)
+
+    def __str__(self):
+        if not self.failed:
+            return '{name} completed successfully in {time}'.format(name=self.name,
+                                                                    time=self.time)
+        else:
+            return '{name} failed for {failure_reason}'.format(name=self.name,
+                                                               failure_reason=self.failure_reason)
+
 def run_all():
     config = loadConfig('settings.conf')
     LOCAL_DIRECTORY = config.get('ATTACHMENTS', 'LOCAL_DIRECTORY')
@@ -22,13 +46,10 @@ def run_all():
 
     solutions = os.listdir(LOCAL_DIRECTORY)
 
-    passes = set()
-    fails = set()
-    timings = dict()
+    results = []
 
     for solution in solutions:
         print('Running {}'.format(term.blue(solution)))
-        passes.add(solution)
         path = os.path.join(LOCAL_DIRECTORY, solution)
         try:
             check_bandit(path)
@@ -38,28 +59,39 @@ def run_all():
 
             start_time = datetime.now()
             for test in TEST_TRIANGLES:
-                result = check_triangle(path,
+                failure_message = check_triangle(path,
                                         python_executable=os.path.join(venv_path, 'bin', 'python3'),
                                         executable=EXECUTABLE,
                                         **test)
-                if not result:
-                    fails.add(solution)
-            finish_time = datetime.now()
-            timings[solution] = finish_time - start_time
+                if failure_message:
+                    result = Result(solution,
+                                    failure_reason=failure_message)
+                    results.append(result)
+                    break
+            else:
+                finish_time = datetime.now()
+                result = Result(solution,
+                                time=finish_time - start_time)
+                results.append(result)
 
         except StopExecution:
             raise
         except Exception as e:
-            fails.add(solution)
             print(term.red('Got exception running {}'.format(solution)))
             print(term.red(str(e)))
+            failure_message = str(e)
+
             if hasattr(e, 'stdout') and e.stdout:
                 print(term.red(e.stdout))
+                failure_message = failure_message + '\nFrom stdout:\n{stdout}'.format(stdout=e.stdout)
+
+            result = Result(solution,
+                            failure_reason=failure_message)
+            results.append(result)
 
         print()
 
-    passes.difference_update(fails)
-    return passes, fails, timings
+    return results
 
 def check_bandit(path):
     run(path,
