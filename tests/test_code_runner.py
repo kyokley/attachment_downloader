@@ -102,7 +102,7 @@ class TestRunAll(object):
 
         self.mock_listdir.return_value = ['test_solution']
 
-        self.mock_check_triangle.side_effect = [True, True]
+        self.mock_check_triangle.side_effect = ['', '']
 
     def teardown_method(self):
         self.loadConfig_patcher.stop()
@@ -124,21 +124,21 @@ class TestRunAll(object):
     def test_exceptions_continue(self):
         self.mock_check_bandit.side_effect = Exception('FAIL')
 
-        expected = (set(), {'test_solution'}, {})
         actual = run_all()
 
-        assert expected == actual
+        assert len(actual) == 1
+        assert actual[0].name == 'test_solution'
+        assert actual[0].failure_reason == 'FAIL'
         self.mock_check_bandit.assert_called_once_with('test_local_dir/test_solution')
         self.mock_term.red.assert_any_call('Got exception running test_solution')
         assert not self.mock_check_triangle.called
 
     def test_run_all(self):
-        expected = ({'test_solution'}, set())
         actual = run_all()
 
-        assert (expected[0], expected[1]) == (actual[0], actual[1])
-        assert 'test_solution' in actual[2] and isinstance(actual[2]['test_solution'], timedelta)
-        assert not self.mock_term.red.called
+        assert len(actual) == 1
+        assert actual[0].name == 'test_solution'
+        assert not actual[0].failed
         self.mock_check_bandit.assert_called_once_with('test_local_dir/test_solution')
         self.mock_create_virtualenv.assert_called_once_with('test_local_dir/test_solution')
         self.mock_install_requirements.assert_called_once_with('test_venv', 'test_local_dir/test_solution')
