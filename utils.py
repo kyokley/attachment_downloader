@@ -92,7 +92,7 @@ def install_requirements(venv_path, directory):
                 ))
 
         subprocess.run(split_cmd,
-                       check=True)
+                       check=False)
 
 def assess_answer(expected, actual, conversion_func=None):
     if not conversion_func:
