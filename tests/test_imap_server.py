@@ -107,3 +107,27 @@ class TestUniqueFilename(object):
                                                                mock.call(b'1-17-18'),
                                                                ])
         self.mock_sha256.return_value.hexdigest.assert_called_once_with()
+
+    def test_encoded_filename_zip(self):
+        filename = '=?UTF-8?b?dGVzdC56aXAK?='
+
+        expected = 'test_e3b0c4.zip'
+        actual = ImapServer._unique_filename(filename, from_addr='test@example.com', date='1-17-18')
+
+        assert expected == actual
+        self.mock_sha256.return_value.update.assert_has_calls([mock.call(b'test@example.com'),
+                                                               mock.call(b'1-17-18'),
+                                                               ])
+        self.mock_sha256.return_value.hexdigest.assert_called_once_with()
+
+    def test_encoded_filename_tar_gz(self):
+        filename = '=?UTF-8?b?dGVzdC50YXIuZ3oK?='
+
+        expected = 'test_e3b0c4.tar.gz'
+        actual = ImapServer._unique_filename(filename, from_addr='test@example.com', date='1-17-18')
+
+        assert expected == actual
+        self.mock_sha256.return_value.update.assert_has_calls([mock.call(b'test@example.com'),
+                                                               mock.call(b'1-17-18'),
+                                                               ])
+        self.mock_sha256.return_value.hexdigest.assert_called_once_with()

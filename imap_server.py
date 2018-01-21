@@ -1,6 +1,7 @@
 import os
 import email
 import hashlib
+import base64
 from imaplib import (IMAP4_SSL,
                      IMAP4,
                      )
@@ -49,6 +50,11 @@ class ImapServer(object):
 
     @staticmethod
     def _unique_filename(filename, from_addr='', date=''):
+        if filename.startswith('='):
+            encoded_filename = filename.split('?')[3]
+            filename = base64.b64decode(encoded_filename).decode('utf-8')
+
+        filename = filename.strip()
         ext = archive_extension(filename)
         basename = archive_basename(filename)
         hash_obj = hashlib.sha256()
@@ -60,7 +66,7 @@ class ImapServer(object):
 
         return '{basename}_{hash_val}{ext}'.format(basename=basename,
                                                    hash_val=hash_val,
-                                                   ext=ext)
+                                                   ext=ext).lower()
 
     def _login(self):
         typ, data = self._connection.login(self.username, self.password)
@@ -124,7 +130,7 @@ class ImapServer(object):
                         part.get('Content-Disposition') is None):
                     continue
 
-                orig_filename = part.get_filename().lower()
+                orig_filename = part.get_filename()
                 uniq_filename = self._unique_filename(orig_filename,
                                                       from_addr=mail.get('From', ''),
                                                       date=mail.get('Date', ''))
