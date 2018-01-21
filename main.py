@@ -42,6 +42,8 @@ def main():
         successes = [x for x in results if not x.failed]
         successes.sort(key=lambda x: x.time)
 
+        fails = [x for x in results if x.failed]
+
         print('Correct Solutions:')
         for result in successes:
             print('{name}\n\t{time}'.format(name=term.blue(result.name),
@@ -53,6 +55,12 @@ def main():
                 for result in successes:
                     f.write('{name} {time}\n'.format(name=result.name,
                                                      time=str(result.time)))
+
+                f.write('\n')
+
+                for result in fails:
+                    f.write('{name}\n{reason}'.format(name=result.name,
+                                                      reason=result.failure_reason))
 
     print()
     print('All Done')
