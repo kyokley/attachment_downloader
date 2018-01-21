@@ -319,7 +319,7 @@ class TestInstallRequirements(object):
                                                'install',
                                                '-r',
                                                'root/requirements.txt'],
-                                              check=True)
+                                              check=False)
 
     def test_requirements_with_proxy(self):
         os.environ['PIP_PROXY'] = 'test_proxy'
@@ -334,4 +334,4 @@ class TestInstallRequirements(object):
                                                'root/requirements.txt',
                                                '--proxy',
                                                'test_proxy'],
-                                              check=True)
+                                              check=False)
