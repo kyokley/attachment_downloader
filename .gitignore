@@ -6,3 +6,4 @@ settings.conf
 .cache
 .vagrant
 *.log
+results.txt

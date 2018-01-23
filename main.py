@@ -7,6 +7,9 @@ from imap_server import ImapServer
 from attachment import decompress_archives
 from code_runner import run_all
 from blessings import Terminal
+from utils import (output_results,
+                   output_results_to_file,
+                   )
 
 term = Terminal()
 
@@ -39,28 +42,11 @@ def main():
     run_code = input('Run code now? (y/N) ')
     if run_code.lower() in ('y', 'yes'):
         results = run_all()
-        successes = [x for x in results if not x.failed]
-        successes.sort(key=lambda x: x.time)
 
-        fails = [x for x in results if x.failed]
-
-        print('Correct Solutions:')
-        for result in successes:
-            print('{name}\n\t{time}'.format(name=term.blue(result.name),
-                                            time=term.magenta(str(result.time))))
-            print()
+        output_results(results)
 
         if FILENAME:
-            with open(FILENAME, 'w') as f:
-                for result in successes:
-                    f.write('{name} {time}\n'.format(name=result.name,
-                                                     time=str(result.time)))
-
-                f.write('\n')
-
-                for result in fails:
-                    f.write('{name}\n{reason}'.format(name=result.name,
-                                                      reason=result.failure_reason))
+            output_results_to_file(FILENAME, results)
 
     print()
     print('All Done')
