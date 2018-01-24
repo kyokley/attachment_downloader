@@ -18,16 +18,21 @@ ALLOWED_CODE_EXTENSIONS = (PY_EXTENSION,
                            TXT_EXTENSION,
                            )
 
+class BadExtension(Exception):
+    pass
+
 def archive_extension(filename):
-    for extension in ALLOWED_ARCHIVE_EXTENSIONS:
-        if extension in filename:
-            return extension
+    for allowed_ext in ALLOWED_ARCHIVE_EXTENSIONS:
+        if filename.lower().endswith(allowed_ext):
+            return allowed_ext
 
 def archive_basename(filename):
     ext = archive_extension(filename)
     if ext:
         basename = filename.split(ext)[0]
         return basename
+    else:
+        raise BadExtension('{} is missing a valid extension'.format(filename))
 
 def _archive_filter(members, name_func):
     for member in members:

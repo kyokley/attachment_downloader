@@ -1,6 +1,8 @@
+import pytest
 from attachment import (archive_extension,
                         archive_basename,
                         _archive_filter,
+                        BadExtension,
                         )
 
 class TestArchiveExtension(object):
@@ -32,10 +34,8 @@ class TestArchiveBasename(object):
     def test_not_allowed_ext(self):
         filename = 'test.pdf'
 
-        expected = None
-        actual = archive_basename(filename)
-
-        assert expected == actual
+        with pytest.raises(BadExtension):
+            archive_basename(filename)
 
     def test_tar_gz(self):
         filename = 'test.tar.gz'

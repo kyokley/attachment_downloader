@@ -7,6 +7,7 @@ from imaplib import (IMAP4_SSL,
                      )
 from attachment import (archive_extension,
                         archive_basename,
+                        BadExtension,
                         )
 from blessings import Terminal
 term = Terminal()
@@ -134,10 +135,15 @@ class ImapClient(object):
                     continue
 
                 orig_filename = part.get_filename()
-                uniq_filename = self._unique_filename(orig_filename,
-                                                      from_addr=mail.get('From', ''),
-                                                      date=mail.get('Date', ''),
-                                                      count=count)
+
+                try:
+                    uniq_filename = self._unique_filename(orig_filename,
+                                                          from_addr=mail.get('From', ''),
+                                                          date=mail.get('Date', ''),
+                                                          count=count)
+                except BadExtension as e:
+                    print(term.red(str(e)))
+                    continue
 
                 full_path = os.path.join(directory, uniq_filename)
 

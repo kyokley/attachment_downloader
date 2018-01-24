@@ -56,5 +56,5 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         print(term.red('Aborting'))
-    except Exception as e:
-        print(term.red(str(e)))
+    #except Exception as e:
+        #print(term.red(str(e)))
