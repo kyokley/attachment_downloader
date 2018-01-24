@@ -108,7 +108,7 @@ class TestRun(object):
     def test_got_incorrect_answer(self):
         self.mock_assess_answer.return_value = 'Got an incorrect answer'
 
-        expected = 'Got an incorrect answer'
+        expected = 'python main.py\nGot an incorrect answer'
         actual = run('test_directory', 'python main.py', expected='test_val')
 
         assert expected == actual

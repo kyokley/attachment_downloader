@@ -56,7 +56,8 @@ def run(directory, cmd, executable=None, expected=SENTINEL, suppress_output=Fals
                 print(term.red('Executed in {}'.format(directory)))
             print(term.red('Got:'))
             print(term.red(failure_message))
-            return failure_message
+            return '{cmd}\n{failure_message}'.format(cmd=cmd,
+                                             failure_message=failure_message)
 
 def create_virtualenv(directory):
     venv_path = os.path.abspath(os.path.join(directory, '.venv'))
