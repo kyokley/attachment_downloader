@@ -49,7 +49,7 @@ class ImapServer(object):
             self._select(self.folder)
 
     @staticmethod
-    def _unique_filename(filename, from_addr='', date=''):
+    def _unique_filename(filename, from_addr='', date='', count=0):
         if filename.startswith('='):
             encoded_filename = filename.split('?')[3]
             filename = base64.b64decode(encoded_filename).decode('utf-8')
@@ -61,6 +61,7 @@ class ImapServer(object):
 
         hash_obj.update(from_addr.encode('utf-8'))
         hash_obj.update(date.encode('utf-8'))
+        hash_obj.update(str(count).encode('utf-8'))
 
         hash_val = hash_obj.hexdigest()[:6]
 
@@ -125,7 +126,9 @@ class ImapServer(object):
             os.mkdir(directory)
 
         for mail in self.fetch_messages():
+            count = 0
             for part in mail.walk():
+                count += 1
                 if (part.get_content_maintype() == 'multipart' or
                         part.get('Content-Disposition') is None):
                     continue
@@ -133,7 +136,8 @@ class ImapServer(object):
                 orig_filename = part.get_filename()
                 uniq_filename = self._unique_filename(orig_filename,
                                                       from_addr=mail.get('From', ''),
-                                                      date=mail.get('Date', ''))
+                                                      date=mail.get('Date', ''),
+                                                      count=count)
 
                 full_path = os.path.join(directory, uniq_filename)
 
