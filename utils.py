@@ -126,7 +126,7 @@ def output_results_to_file(filename, results):
     with open(filename, 'w') as f:
         _output_results(f.write, results, use_color=False, include_fails=True)
 
-def output_results(results):
+def output_results_to_stdout(results):
     _output_results(print, results, use_color=True, include_fails=False)
 
 def _output_results(output_func, results, use_color=False, include_fails=False):

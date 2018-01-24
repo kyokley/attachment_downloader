@@ -7,7 +7,7 @@ from imap_server import ImapServer
 from attachment import decompress_archives
 from code_runner import run_all
 from blessings import Terminal
-from utils import (output_results,
+from utils import (output_results_to_stdout,
                    output_results_to_file,
                    )
 
@@ -43,7 +43,7 @@ def main():
     if run_code.lower() in ('y', 'yes'):
         results = run_all()
 
-        output_results(results)
+        output_results_to_stdout(results)
 
         if FILENAME:
             output_results_to_file(FILENAME, results)

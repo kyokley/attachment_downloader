@@ -1,12 +1,17 @@
+from __future__ import print_function
+
 import mock
 import pytest
 import subprocess
 import os
 
+from code_runner import Result
 from utils import (assess_answer,
                    run,
                    create_virtualenv,
                    install_requirements,
+                   output_results_to_file,
+                   output_results_to_stdout,
                    )
 
 class TestAssessAnswer(object):
@@ -335,3 +340,48 @@ class TestInstallRequirements(object):
                                                '--proxy',
                                                'test_proxy'],
                                               check=False)
+
+class TestOutputResultsToFile(object):
+    def setup_method(self):
+        self._output_results_patcher = mock.patch('utils._output_results')
+        self.mock_output_results = self._output_results_patcher.start()
+
+        self.open_patcher = mock.patch('utils.open')
+        self.mock_open = self.open_patcher.start()
+
+        self.filename = 'test_filename'
+        self.results = [mock.MagicMock(Result)]
+
+    def teardown_method(self):
+        self._output_results_patcher.stop()
+        self.open_patcher.stop()
+
+    def test_output_results_to_file(self):
+        expected = None
+        actual = output_results_to_file(self.filename, self.results)
+
+        assert expected == actual
+        self.mock_output_results.assert_called_once_with(self.mock_open.return_value.__enter__.return_value.write,
+                                                         self.results,
+                                                         use_color=False,
+                                                         include_fails=True)
+
+class TestOutputResults(object):
+    def setup_method(self):
+        self._output_results_patcher = mock.patch('utils._output_results')
+        self.mock_output_results = self._output_results_patcher.start()
+
+        self.results = [mock.MagicMock(Result)]
+
+    def teardown_method(self):
+        self._output_results_patcher.stop()
+
+    def test_output_results(self):
+        expected = None
+        actual = output_results_to_stdout(self.results)
+
+        assert expected == actual
+        self.mock_output_results.assert_called_once_with(print,
+                                                         self.results,
+                                                         use_color=True,
+                                                         include_fails=False)
