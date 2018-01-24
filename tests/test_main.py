@@ -12,8 +12,8 @@ class TestMain(object):
         self.getpass_patcher = mock.patch('main.getpass.getpass')
         self.mock_getpass = self.getpass_patcher.start()
 
-        self.ImapServer_patcher = mock.patch('main.ImapServer')
-        self.mock_ImapServer = self.ImapServer_patcher.start()
+        self.ImapClient_patcher = mock.patch('main.ImapClient')
+        self.mock_ImapClient = self.ImapClient_patcher.start()
 
         self.input_patcher = mock.patch('main.input')
         self.mock_input = self.input_patcher.start()
@@ -42,7 +42,7 @@ class TestMain(object):
 
     def teardown_method(self):
         self.loadConfig_patcher.stop()
-        self.ImapServer_patcher.stop()
+        self.ImapClient_patcher.stop()
         self.getpass_patcher.stop()
         self.input_patcher.stop()
         self.output_results_to_stdout_patcher.stop()
@@ -57,13 +57,13 @@ class TestMain(object):
         actual = main()
 
         assert expected == actual
-        self.mock_ImapServer.assert_called_once_with('test_host',
+        self.mock_ImapClient.assert_called_once_with('test_host',
                                                      'test_username',
                                                      'test_password',
                                                      folder='test_remote_folder',
                                                      )
-        self.mock_ImapServer.return_value.download_attachements.assert_called_once_with(directory='test_local_directory')
-        self.mock_ImapServer.return_value.logout.assert_called_once_with()
+        self.mock_ImapClient.return_value.download_attachements.assert_called_once_with(directory='test_local_directory')
+        self.mock_ImapClient.return_value.logout.assert_called_once_with()
         self.mock_decompress_archives.assert_called_once_with('test_local_directory')
 
         assert not self.mock_run_all.called
@@ -77,13 +77,13 @@ class TestMain(object):
         actual = main()
 
         assert expected == actual
-        self.mock_ImapServer.assert_called_once_with('test_host',
+        self.mock_ImapClient.assert_called_once_with('test_host',
                                                      'test_username',
                                                      'test_password',
                                                      folder='test_remote_folder',
                                                      )
-        self.mock_ImapServer.return_value.download_attachements.assert_called_once_with(directory='test_local_directory')
-        self.mock_ImapServer.return_value.logout.assert_called_once_with()
+        self.mock_ImapClient.return_value.download_attachements.assert_called_once_with(directory='test_local_directory')
+        self.mock_ImapClient.return_value.logout.assert_called_once_with()
         self.mock_decompress_archives.assert_called_once_with('test_local_directory')
 
         self.mock_run_all.assert_called_once_with()
@@ -104,13 +104,13 @@ class TestMain(object):
         actual = main()
 
         assert expected == actual
-        self.mock_ImapServer.assert_called_once_with('test_host',
+        self.mock_ImapClient.assert_called_once_with('test_host',
                                                      'test_username',
                                                      'test_password',
                                                      folder='test_remote_folder',
                                                      )
-        self.mock_ImapServer.return_value.download_attachements.assert_called_once_with(directory='test_local_directory')
-        self.mock_ImapServer.return_value.logout.assert_called_once_with()
+        self.mock_ImapClient.return_value.download_attachements.assert_called_once_with(directory='test_local_directory')
+        self.mock_ImapClient.return_value.logout.assert_called_once_with()
         self.mock_decompress_archives.assert_called_once_with('test_local_directory')
 
         self.mock_run_all.assert_called_once_with()

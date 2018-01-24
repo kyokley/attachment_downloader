@@ -24,7 +24,7 @@ id_gen = _unique_id()
 class NotConnected(Exception):
     pass
 
-class ImapServer(object):
+class ImapClient(object):
     def __init__(self,
                  host,
                  username,

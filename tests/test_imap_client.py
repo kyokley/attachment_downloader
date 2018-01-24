@@ -1,10 +1,10 @@
 import mock
 
-from imap_server import ImapServer
+from imap_client import ImapClient
 
 class TestUniqueFilename(object):
     def setup_method(self):
-        self.sha256_patcher = mock.patch('imap_server.hashlib.sha256')
+        self.sha256_patcher = mock.patch('imap_client.hashlib.sha256')
         self.mock_sha256 = self.sha256_patcher.start()
 
         self.mock_sha256.return_value.hexdigest.return_value = 'e3b0c4'
@@ -16,7 +16,7 @@ class TestUniqueFilename(object):
         filename = 'test.tar.gz'
 
         expected = 'test_e3b0c4.tar.gz'
-        actual = ImapServer._unique_filename(filename)
+        actual = ImapClient._unique_filename(filename)
 
         assert expected == actual
         self.mock_sha256.return_value.update.assert_has_calls([mock.call(b''),
@@ -28,7 +28,7 @@ class TestUniqueFilename(object):
         filename = 'test.zip'
 
         expected = 'test_e3b0c4.zip'
-        actual = ImapServer._unique_filename(filename)
+        actual = ImapClient._unique_filename(filename)
 
         assert expected == actual
         self.mock_sha256.return_value.update.assert_has_calls([mock.call(b''),
@@ -40,7 +40,7 @@ class TestUniqueFilename(object):
         filename = 'test.tar.gz'
 
         expected = 'test_e3b0c4.tar.gz'
-        actual = ImapServer._unique_filename(filename, from_addr='test@example.com')
+        actual = ImapClient._unique_filename(filename, from_addr='test@example.com')
 
         assert expected == actual
         self.mock_sha256.return_value.update.assert_has_calls([mock.call(b'test@example.com'),
@@ -52,7 +52,7 @@ class TestUniqueFilename(object):
         filename = 'test.zip'
 
         expected = 'test_e3b0c4.zip'
-        actual = ImapServer._unique_filename(filename, from_addr='test@example.com')
+        actual = ImapClient._unique_filename(filename, from_addr='test@example.com')
 
         assert expected == actual
         self.mock_sha256.return_value.update.assert_has_calls([mock.call(b'test@example.com'),
@@ -64,7 +64,7 @@ class TestUniqueFilename(object):
         filename = 'test.tar.gz'
 
         expected = 'test_e3b0c4.tar.gz'
-        actual = ImapServer._unique_filename(filename, date='1-17-18')
+        actual = ImapClient._unique_filename(filename, date='1-17-18')
 
         assert expected == actual
         self.mock_sha256.return_value.update.assert_has_calls([mock.call(b''),
@@ -76,7 +76,7 @@ class TestUniqueFilename(object):
         filename = 'test.zip'
 
         expected = 'test_e3b0c4.zip'
-        actual = ImapServer._unique_filename(filename, date='1-17-18')
+        actual = ImapClient._unique_filename(filename, date='1-17-18')
 
         assert expected == actual
         self.mock_sha256.return_value.update.assert_has_calls([mock.call(b''),
@@ -88,7 +88,7 @@ class TestUniqueFilename(object):
         filename = 'test.tar.gz'
 
         expected = 'test_e3b0c4.tar.gz'
-        actual = ImapServer._unique_filename(filename, from_addr='test@example.com', date='1-17-18')
+        actual = ImapClient._unique_filename(filename, from_addr='test@example.com', date='1-17-18')
 
         assert expected == actual
         self.mock_sha256.return_value.update.assert_has_calls([mock.call(b'test@example.com'),
@@ -100,7 +100,7 @@ class TestUniqueFilename(object):
         filename = 'test.zip'
 
         expected = 'test_e3b0c4.zip'
-        actual = ImapServer._unique_filename(filename, from_addr='test@example.com', date='1-17-18')
+        actual = ImapClient._unique_filename(filename, from_addr='test@example.com', date='1-17-18')
 
         assert expected == actual
         self.mock_sha256.return_value.update.assert_has_calls([mock.call(b'test@example.com'),
@@ -112,7 +112,7 @@ class TestUniqueFilename(object):
         filename = '=?UTF-8?b?dGVzdC56aXAK?='
 
         expected = 'test_e3b0c4.zip'
-        actual = ImapServer._unique_filename(filename, from_addr='test@example.com', date='1-17-18')
+        actual = ImapClient._unique_filename(filename, from_addr='test@example.com', date='1-17-18')
 
         assert expected == actual
         self.mock_sha256.return_value.update.assert_has_calls([mock.call(b'test@example.com'),
@@ -124,7 +124,7 @@ class TestUniqueFilename(object):
         filename = '=?UTF-8?b?dGVzdC50YXIuZ3oK?='
 
         expected = 'test_e3b0c4.tar.gz'
-        actual = ImapServer._unique_filename(filename, from_addr='test@example.com', date='1-17-18')
+        actual = ImapClient._unique_filename(filename, from_addr='test@example.com', date='1-17-18')
 
         assert expected == actual
         self.mock_sha256.return_value.update.assert_has_calls([mock.call(b'test@example.com'),

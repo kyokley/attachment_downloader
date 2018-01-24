@@ -3,7 +3,7 @@ import getpass
 from six.moves import input
 
 from config import loadConfig
-from imap_server import ImapServer
+from imap_client import ImapClient
 from attachment import decompress_archives
 from code_runner import run_all
 from blessings import Terminal
@@ -23,13 +23,13 @@ def main():
 
     LOCAL_DIRECTORY = config.get('ATTACHMENTS', 'LOCAL_DIRECTORY')
 
-    imap_server = ImapServer(HOST,
+    imap_client = ImapClient(HOST,
                              USERNAME,
                              PASSWORD,
                              folder=FOLDER,
                              )
-    imap_server.download_attachements(directory=LOCAL_DIRECTORY)
-    imap_server.logout()
+    imap_client.download_attachements(directory=LOCAL_DIRECTORY)
+    imap_client.logout()
 
     print('Finished downloading attachments')
     print()
