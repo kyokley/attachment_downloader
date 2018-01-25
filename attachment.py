@@ -68,13 +68,13 @@ def decompress_archives(path):
         new_full_path = os.path.join(new_dir, archive)
         os.rename(full_path, new_full_path)
 
-        if ext is TAR_EXTENSION:
-            tar_file = tarfile.open(new_full_path, 'r')
-            tar_file.extractall(path=new_dir, members=_archive_filter(tar_file, lambda x: x.name))
-            tar_file.close()
-        elif ext is ZIP_EXTENSION:
-            try:
+        try:
+            if ext is TAR_EXTENSION:
+                tar_file = tarfile.open(new_full_path, 'r')
+                tar_file.extractall(path=new_dir, members=_archive_filter(tar_file, lambda x: x.name))
+                tar_file.close()
+            elif ext is ZIP_EXTENSION:
                 zip_file = zipfile.ZipFile(new_full_path, 'r')
                 zip_file.extractall(path=new_dir, members=_archive_filter(zip_file.namelist(), lambda x: x))
-            except zipfile.BadZipfile as e:
-                print(term.red('Got error in {}: {}'.format(new_full_path, str(e))))
+        except (zipfile.BadZipfile, tarfile.TarError) as e:
+            print(term.red('Got error in {}: {}'.format(new_full_path, str(e))))
