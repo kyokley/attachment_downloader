@@ -73,5 +73,8 @@ def decompress_archives(path):
             tar_file.extractall(path=new_dir, members=_archive_filter(tar_file, lambda x: x.name))
             tar_file.close()
         elif ext is ZIP_EXTENSION:
-            zip_file = zipfile.ZipFile(new_full_path, 'r')
-            zip_file.extractall(path=new_dir, members=_archive_filter(zip_file.namelist(), lambda x: x))
+            try:
+                zip_file = zipfile.ZipFile(new_full_path, 'r')
+                zip_file.extractall(path=new_dir, members=_archive_filter(zip_file.namelist(), lambda x: x))
+            except zipfile.BadZipfile as e:
+                raise BadExtension('Got error in {}: {}'.format(new_full_path, str(e)))
