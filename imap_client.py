@@ -2,6 +2,7 @@ import os
 import email
 import hashlib
 import base64
+import re
 from imaplib import (IMAP4_SSL,
                      IMAP4,
                      )
@@ -12,6 +13,7 @@ from attachment import (archive_extension,
 from blessings import Terminal
 term = Terminal()
 
+EMAIL_REGEX = re.compile('(?<=<)[^<>]+(?=>)')
 OK = 'OK'
 
 def _unique_id():
@@ -158,9 +160,9 @@ class ImapClient(object):
         email_addrs = set()
 
         for mail in self.fetch_messages():
-            from_addr = mail.get('From')
-
-            if from_addr:
+            match = EMAIL_REGEX.search(mail.get('From', ''))
+            if match:
+                from_addr = match.group()
                 email_addrs.add(from_addr)
 
         return email_addrs
