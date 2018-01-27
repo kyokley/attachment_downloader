@@ -131,3 +131,44 @@ class TestUniqueFilename(object):
                                                                mock.call(b'1-17-18'),
                                                                ])
         self.mock_sha256.return_value.hexdigest.assert_called_once_with()
+
+class TestGetEmailAddresses(object):
+    def setup_method(self):
+        self.imap4_patcher = mock.patch('imap_client.IMAP4')
+        self.mock_imap4 = self.imap4_patcher.start()
+
+        self.imap4_ssl_patcher = mock.patch('imap_client.IMAP4_SSL')
+        self.mock_imap4_ssl = self.imap4_ssl_patcher.start()
+
+        self.fetch_messages_patcher = mock.patch('imap_client.ImapClient.fetch_messages')
+        self.mock_fetch_messages = self.fetch_messages_patcher.start()
+
+        self._login_patcher = mock.patch('imap_client.ImapClient._login')
+        self.mock_login = self._login_patcher.start()
+
+        self._select_patcher = mock.patch('imap_client.ImapClient._select')
+        self.mock_select = self._select_patcher.start()
+
+        self.imap_client = ImapClient('test_host',
+                                      'test_username',
+                                      'test_password',
+                                      )
+
+    def teardown_method(self):
+        self.fetch_messages_patcher.stop()
+        self.imap4_patcher.stop()
+        self.imap4_ssl_patcher.stop()
+        self._login_patcher.stop()
+        self._select_patcher.stop()
+
+    def test_get_email_addresses(self):
+        self.mock_fetch_messages.return_value = [{'From': 'John Doe <john.doe@example.com>'},
+                                                 {'From': 'asdf@example.com <asdf@example.com>'},
+                                                 {'From': '<john.doe@example.com>'},
+                                                 ]
+
+        expected = set(['john.doe@example.com',
+                        'asdf@example.com'])
+        actual = self.imap_client.get_email_addresses()
+
+        assert expected == actual
