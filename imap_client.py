@@ -154,6 +154,17 @@ class ImapClient(object):
                     with open(full_path, 'wb') as f:
                         f.write(part.get_payload(decode=True))
 
+    def get_email_addresses(self): # TODO: Test me
+        email_addrs = set()
+
+        for mail in self.fetch_messages():
+            from_addr = mail.get('From')
+
+            if from_addr:
+                email_addrs.add(from_addr)
+
+        return email_addrs
+
     def logout(self):
         self._connection.close()
         self._connection.logout()
