@@ -132,11 +132,14 @@ class ImapClient(object):
             count = 0
             for part in mail.walk():
                 count += 1
-                if (part.get_content_maintype() == 'multipart' or
+                if (part.get_content_maintype() in ('multipart', 'text') or
                         part.get('Content-Disposition') is None):
                     continue
 
                 orig_filename = part.get_filename()
+                if not orig_filename:
+                    print(term.red('Could not get filename from {} {}'.format(mail.get('From', ''),
+                                                                              mail.get('Subject', ''))))
 
                 try:
                     uniq_filename = self._unique_filename(orig_filename,
