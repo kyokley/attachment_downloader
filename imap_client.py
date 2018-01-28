@@ -140,6 +140,7 @@ class ImapClient(object):
                 if not orig_filename:
                     print(term.red('Could not get filename from {} {}'.format(mail.get('From', ''),
                                                                               mail.get('Subject', ''))))
+                    continue
 
                 try:
                     uniq_filename = self._unique_filename(orig_filename,
