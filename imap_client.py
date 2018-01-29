@@ -14,6 +14,7 @@ from blessings import Terminal
 term = Terminal()
 
 EMAIL_REGEX = re.compile('(?<=<)[^<>]+(?=>)')
+QUOTED_PRINTABLE_ENCODED_REGEX = re.compile('=\S{2}')
 OK = 'OK'
 
 def _unique_id():
@@ -54,8 +55,15 @@ class ImapClient(object):
     @staticmethod
     def _unique_filename(filename, from_addr='', date='', count=0):
         if filename.startswith('='):
-            encoded_filename = filename.split('?')[3]
-            filename = base64.b64decode(encoded_filename).decode('utf-8')
+            charset, encoding, encoded_filename = filename.split('?')[1:4]
+            if encoding in ('b', 'B'):
+                filename = base64.b64decode(encoded_filename).decode(charset)
+            elif encoding in ('q', 'Q'):
+                filename = encoded_filename
+                match = QUOTED_PRINTABLE_ENCODED_REGEX.search(filename)
+                while match:
+                    filename = filename[:match.start()] + chr(int(match.group()[1:], 16)) + filename[match.end():]
+                    match = QUOTED_PRINTABLE_ENCODED_REGEX.search(filename)
 
         filename = filename.strip()
         ext = archive_extension(filename)
