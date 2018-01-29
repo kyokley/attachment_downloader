@@ -8,7 +8,7 @@ from blessings import Terminal
 term = Terminal()
 SENTINEL = object()
 
-TIMEOUT = 60
+TIMEOUT = 10
 REQUIREMENTS = 'requirements.txt'
 
 def run(directory, cmd, executable=None, expected=SENTINEL, suppress_output=False, conversion_func=None):
