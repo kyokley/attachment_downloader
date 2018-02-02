@@ -92,6 +92,9 @@ class TestRunAll(object):
         self.install_requirements_patcher = mock.patch('code_runner.install_requirements')
         self.mock_install_requirements = self.install_requirements_patcher.start()
 
+        self.write_failure_reason_to_file_patcher = mock.patch('code_runner.Result.write_failure_reason_to_file')
+        self.mock_write_failure_reason_to_file = self.write_failure_reason_to_file_patcher.start()
+
         self.mock_create_virtualenv.return_value = 'test_venv'
 
         self.mock_config = mock.MagicMock()
@@ -113,6 +116,7 @@ class TestRunAll(object):
         self.term_patcher.stop()
         self.create_virtualenv_patcher.stop()
         self.install_requirements_patcher.stop()
+        self.write_failure_reason_to_file_patcher.stop()
 
     def test_StopExecution_reraises(self):
         self.mock_check_bandit.side_effect = StopExecution('FAIL')
@@ -132,6 +136,7 @@ class TestRunAll(object):
         self.mock_check_bandit.assert_called_once_with('test_local_dir/test_solution')
         self.mock_term.red.assert_any_call('Got exception running test_solution')
         assert not self.mock_check_triangle.called
+        self.mock_write_failure_reason_to_file.assert_called_once_with()
 
     def test_run_all(self):
         actual = run_all()
@@ -153,4 +158,5 @@ class TestRunAll(object):
                                                              expected=[1, 2, 3],
                                                              python_executable='test_venv/bin/python3'),
                                                    ])
+        assert not self.mock_write_failure_reason_to_file.called
 

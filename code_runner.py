@@ -19,13 +19,15 @@ class Result(object):
     def __init__(self,
                  name,
                  time=None,
-                 failure_reason=None):
+                 failure_reason=None,
+                 solution_directory=None):
         if not time and not failure_reason:
             raise StopExecution('Improperly defined Result')
 
         self.name = name
         self.time = time
         self.failure_reason = failure_reason
+        self.solution_directory = solution_directory
 
     @property
     def failed(self):
@@ -38,6 +40,16 @@ class Result(object):
         else:
             return '{name} failed for {failure_reason}'.format(name=self.name,
                                                                failure_reason=self.failure_reason)
+
+    def write_failure_reason_to_file(self):
+        if not self.failure_reason:
+            print(term.yellow('No failure to write'))
+        elif not self.solution_directory:
+            print(term.yellow('Cannot write error file. No directory specified'))
+        else:
+            full_path = os.path.join(self.solution_directory, 'error.txt')
+            with open(full_path, 'w') as f:
+                f.write(self.failure_reason)
 
 def run_all():
     config = loadConfig('settings.conf')
@@ -65,13 +77,16 @@ def run_all():
                                         **test)
                 if failure_message:
                     result = Result(solution,
-                                    failure_reason=failure_message)
+                                    failure_reason=failure_message,
+                                    solution_directory=path)
+                    result.write_failure_reason_to_file()
                     results.append(result)
                     break
             else:
                 finish_time = datetime.now()
                 result = Result(solution,
-                                time=finish_time - start_time)
+                                time=finish_time - start_time,
+                                solution_directory=path)
                 results.append(result)
 
         except StopExecution:
@@ -86,7 +101,9 @@ def run_all():
                 failure_message = failure_message + '\nFrom stdout:\n{stdout}'.format(stdout=e.stdout)
 
             result = Result(solution,
-                            failure_reason=failure_message)
+                            failure_reason=failure_message,
+                            solution_directory=path)
+            result.write_failure_reason_to_file()
             results.append(result)
 
         print()
