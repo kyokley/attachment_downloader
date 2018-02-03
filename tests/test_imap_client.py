@@ -156,6 +156,30 @@ class TestUniqueFilename(object):
                                                                ])
         self.mock_sha256.return_value.hexdigest.assert_called_once_with()
 
+    def test_filename_includes_spaces_zip(self):
+        filename = 'john doe smith.zip'
+
+        expected = 'john_doe_smith_e3b0c4.zip'
+        actual = ImapClient._unique_filename(filename, from_addr='test@example.com', date='1-17-18')
+
+        assert expected == actual
+        self.mock_sha256.return_value.update.assert_has_calls([mock.call(b'test@example.com'),
+                                                               mock.call(b'1-17-18'),
+                                                               ])
+        self.mock_sha256.return_value.hexdigest.assert_called_once_with()
+
+    def test_filename_includes_spaces_tar_gz(self):
+        filename = 'john doe smith.tar.gz'
+
+        expected = 'john_doe_smith_e3b0c4.tar.gz'
+        actual = ImapClient._unique_filename(filename, from_addr='test@example.com', date='1-17-18')
+
+        assert expected == actual
+        self.mock_sha256.return_value.update.assert_has_calls([mock.call(b'test@example.com'),
+                                                               mock.call(b'1-17-18'),
+                                                               ])
+        self.mock_sha256.return_value.hexdigest.assert_called_once_with()
+
 class TestGetEmailAddresses(object):
     def setup_method(self):
         self.imap4_patcher = mock.patch('imap_client.IMAP4')

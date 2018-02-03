@@ -65,7 +65,7 @@ class ImapClient(object):
                     filename = filename[:match.start()] + chr(int(match.group()[1:], 16)) + filename[match.end():]
                     match = QUOTED_PRINTABLE_ENCODED_REGEX.search(filename)
 
-        filename = filename.strip()
+        filename = filename.strip().replace(' ', '_')
         ext = archive_extension(filename)
         basename = archive_basename(filename)
         hash_obj = hashlib.sha256()
