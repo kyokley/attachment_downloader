@@ -19,42 +19,46 @@ class Result(object):
     def __init__(self,
                  name,
                  time=None,
-                 failure_reason=None,
+                 failures=None,
                  solution_directory=None):
-        if not time and not failure_reason:
+        if not time and not failures:
             raise StopExecution('Improperly defined Result')
 
         self.name = name
         self.time = time
-        self.failure_reason = failure_reason
+        self.failures = failures or []
         self.solution_directory = solution_directory
 
     @property
-    def failed(self):
-        return bool(self.failure_reason)
+    def has_failures(self):
+        return bool(self.failures)
 
     def __str__(self):
-        if not self.failed:
+        if not self.has_failures:
             return '{name} completed successfully in {time}'.format(name=self.name,
                                                                     time=self.time)
         else:
-            return '{name} failed for {failure_reason}'.format(name=self.name,
-                                                               failure_reason=self.failure_reason)
+            return '{name} failed for {failures}'.format(name=self.name,
+                                                         failures='\n'.join(self.failures))
 
-    def write_failure_reason_to_file(self):
-        if not self.failure_reason:
+    def write_failures_to_file(self):
+        if not self.failures:
             print(term.yellow('No failure to write'))
         elif not self.solution_directory:
             print(term.yellow('Cannot write error file. No directory specified'))
         else:
             full_path = os.path.join(self.solution_directory, 'error.txt')
             with open(full_path, 'w') as f:
-                f.write(self.failure_reason)
+                f.write('\n'.join(self.failures))
+
+    def add_failure(self, failure):
+        self.failures.append(failure)
 
 def run_all():
     config = loadConfig('settings.conf')
     LOCAL_DIRECTORY = config.get('ATTACHMENTS', 'LOCAL_DIRECTORY')
     EXECUTABLE = config.get('EXECUTION', 'EXECUTABLE')
+    STOP_ON_FIRST_FAILURE = config.get('EXECUTION', 'STOP_ON_FIRST_FAILURE')
 
     solutions = os.listdir(LOCAL_DIRECTORY)
 
@@ -62,35 +66,14 @@ def run_all():
 
     for solution in solutions:
         print('Running {}'.format(term.blue(solution)))
+
         path = os.path.join(LOCAL_DIRECTORY, solution)
+
+        result = Result(solution,
+                        solution_directory=path)
+
         try:
             check_bandit(path)
-
-            venv_path = create_virtualenv(path)
-            install_requirements(venv_path, path)
-
-            start_time = datetime.now()
-            for test in TEST_TRIANGLES:
-                failure_message = check_triangle(path,
-                                        python_executable=os.path.join(venv_path, 'bin', 'python3'),
-                                        executable=EXECUTABLE,
-                                        **test)
-                if failure_message:
-                    result = Result(solution,
-                                    failure_reason=failure_message,
-                                    solution_directory=path)
-                    result.write_failure_reason_to_file()
-                    results.append(result)
-                    break
-            else:
-                finish_time = datetime.now()
-                result = Result(solution,
-                                time=finish_time - start_time,
-                                solution_directory=path)
-                results.append(result)
-
-        except StopExecution:
-            raise
         except Exception as e:
             print(term.red('Got exception running {}'.format(solution)))
             print(term.red(str(e)))
@@ -100,11 +83,46 @@ def run_all():
                 print(term.red(e.stdout))
                 failure_message = failure_message + '\nFrom stdout:\n{stdout}'.format(stdout=e.stdout)
 
-            result = Result(solution,
-                            failure_reason=failure_message,
-                            solution_directory=path)
-            result.write_failure_reason_to_file()
+            result.add_failure(failure_message)
             results.append(result)
+            continue
+
+        venv_path = create_virtualenv(path)
+        install_requirements(venv_path, path)
+
+        start_time = datetime.now()
+        for test in TEST_TRIANGLES:
+            try:
+                failure_message = check_triangle(path,
+                                                 python_executable=os.path.join(venv_path, 'bin', 'python3'),
+                                                 executable=EXECUTABLE,
+                                                 **test)
+
+                if failure_message:
+                    result.add_failure(failure_message)
+
+                    if STOP_ON_FIRST_FAILURE:
+                        break
+            except StopExecution:
+                raise
+            except Exception as e:
+                print(term.red('Got exception running {}'.format(solution)))
+                print(term.red(str(e)))
+                failure_message = str(e)
+
+                if hasattr(e, 'stdout') and e.stdout:
+                    print(term.red(e.stdout))
+                    failure_message = failure_message + '\nFrom stdout:\n{stdout}'.format(stdout=e.stdout)
+
+                result.add_failure(failure_message)
+
+                if STOP_ON_FIRST_FAILURE:
+                    break
+
+        finish_time = datetime.now()
+        result.time = finish_time - start_time,
+        results.append(result)
+
 
         print()
 
