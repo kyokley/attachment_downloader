@@ -21,9 +21,6 @@ class Result(object):
                  time=None,
                  failures=None,
                  solution_directory=None):
-        if not time and not failures:
-            raise StopExecution('Improperly defined Result')
-
         self.name = name
         self.time = time
         self.failures = failures or []
@@ -74,6 +71,8 @@ def run_all():
 
         try:
             check_bandit(path)
+        except StopExecution:
+            raise
         except Exception as e:
             print(term.red('Got exception running {}'.format(solution)))
             print(term.red(str(e)))

@@ -92,14 +92,16 @@ class TestRunAll(object):
         self.install_requirements_patcher = mock.patch('code_runner.install_requirements')
         self.mock_install_requirements = self.install_requirements_patcher.start()
 
-        self.write_failure_reason_to_file_patcher = mock.patch('code_runner.Result.write_failure_reason_to_file')
-        self.mock_write_failure_reason_to_file = self.write_failure_reason_to_file_patcher.start()
+        self.write_failures_to_file_patcher = mock.patch('code_runner.Result.write_failures_to_file')
+        self.mock_write_failures_to_file = self.write_failures_to_file_patcher.start()
 
         self.mock_create_virtualenv.return_value = 'test_venv'
 
         self.mock_config = mock.MagicMock()
         self.mock_config.get.side_effect = ['test_local_dir',
-                                            'test_executable']
+                                            'test_executable',
+                                            True, # STOP_ON_FIRST_FAILURE
+                                            ]
 
         self.mock_loadConfig.return_value = self.mock_config
 
@@ -116,34 +118,49 @@ class TestRunAll(object):
         self.term_patcher.stop()
         self.create_virtualenv_patcher.stop()
         self.install_requirements_patcher.stop()
-        self.write_failure_reason_to_file_patcher.stop()
+        self.write_failures_to_file_patcher.stop()
 
+    # TODO: Add test for running without STOP_ON_FIRST_FAILURE
     def test_StopExecution_reraises(self):
-        self.mock_check_bandit.side_effect = StopExecution('FAIL')
+        self.mock_check_triangle.side_effect = StopExecution('FAIL')
         with pytest.raises(StopExecution):
             run_all()
 
-        assert not self.mock_check_triangle.called
-
-    def test_exceptions_continue(self):
+    def test_bandit_exceptions_continue(self):
         self.mock_check_bandit.side_effect = Exception('FAIL')
 
         actual = run_all()
 
         assert len(actual) == 1
         assert actual[0].name == 'test_solution'
-        assert actual[0].failure_reason == 'FAIL'
+        assert actual[0].failures == ['FAIL']
         self.mock_check_bandit.assert_called_once_with('test_local_dir/test_solution')
         self.mock_term.red.assert_any_call('Got exception running test_solution')
         assert not self.mock_check_triangle.called
-        self.mock_write_failure_reason_to_file.assert_called_once_with()
+        assert not self.mock_write_failures_to_file.called
+
+    def test_check_triangle_exception_stop_on_first_failure(self):
+        self.mock_check_triangle.side_effect = Exception('FAIL')
+
+        actual = run_all()
+        assert actual[0].failures == ['FAIL']
+
+    def test_check_triangle_exception_no_stop_on_first_failure(self):
+        self.mock_config.get.side_effect = ['test_local_dir',
+                                            'test_executable',
+                                            False,
+                                            ]
+        self.mock_check_triangle.side_effect = Exception('FAIL')
+
+        actual = run_all()
+        assert actual[0].failures == ['FAIL', 'FAIL']
 
     def test_run_all(self):
         actual = run_all()
 
         assert len(actual) == 1
         assert actual[0].name == 'test_solution'
-        assert not actual[0].failed
+        assert not actual[0].failures
         self.mock_check_bandit.assert_called_once_with('test_local_dir/test_solution')
         self.mock_create_virtualenv.assert_called_once_with('test_local_dir/test_solution')
         self.mock_install_requirements.assert_called_once_with('test_venv', 'test_local_dir/test_solution')
@@ -158,5 +175,5 @@ class TestRunAll(object):
                                                              expected=[1, 2, 3],
                                                              python_executable='test_venv/bin/python3'),
                                                    ])
-        assert not self.mock_write_failure_reason_to_file.called
+        assert not self.mock_write_failures_to_file.called
 
