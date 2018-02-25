@@ -1,6 +1,5 @@
 import mock
 import pytest
-from datetime import timedelta
 
 from code_runner import (check_bandit,
                          check_triangle,
@@ -120,7 +119,6 @@ class TestRunAll(object):
         self.install_requirements_patcher.stop()
         self.write_failures_to_file_patcher.stop()
 
-    # TODO: Add test for running without STOP_ON_FIRST_FAILURE
     def test_StopExecution_reraises(self):
         self.mock_check_triangle.side_effect = StopExecution('FAIL')
         with pytest.raises(StopExecution):
