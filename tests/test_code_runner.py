@@ -99,8 +99,8 @@ class TestRunAll(object):
         self.mock_config = mock.MagicMock()
         self.mock_config.get.side_effect = ['test_local_dir',
                                             'test_executable',
-                                            True, # STOP_ON_FIRST_FAILURE
                                             ]
+        self.mock_config.getboolean.side_effect = [True]  # STOP_ON_FIRST_FAILURE
 
         self.mock_loadConfig.return_value = self.mock_config
 
@@ -144,10 +144,7 @@ class TestRunAll(object):
         assert actual[0].failures == ['FAIL']
 
     def test_check_triangle_exception_no_stop_on_first_failure(self):
-        self.mock_config.get.side_effect = ['test_local_dir',
-                                            'test_executable',
-                                            False,
-                                            ]
+        self.mock_config.getboolean.side_effect = [False]  # STOP_ON_FIRST_FAILURE
         self.mock_check_triangle.side_effect = Exception('FAIL')
 
         actual = run_all()
