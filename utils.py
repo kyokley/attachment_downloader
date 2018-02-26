@@ -131,7 +131,7 @@ def output_results_to_stdout(results):
     _output_results(print, results, use_color=True, include_fails=False)
 
 def _output_results(output_func, results, use_color=False, include_fails=False):
-    successes = [x for x in results if not x.failed]
+    successes = [x for x in results if not x.has_failures]
     successes.sort(key=lambda x: x.time)
 
     output_func('Correct Solutions:')
@@ -145,7 +145,7 @@ def _output_results(output_func, results, use_color=False, include_fails=False):
                                                 time=time))
 
     if include_fails:
-        fails = [x for x in results if x.failed]
+        fails = [x for x in results if x.has_failures]
 
         output_func('\n')
         output_func('Incorrect Solutions:')
@@ -153,7 +153,7 @@ def _output_results(output_func, results, use_color=False, include_fails=False):
         for result in fails:
             output_func('\n')
             name = result.name if not use_color else term.blue(result.name)
-            failure_reason = result.failure_reason if not use_color else term.red(result.failure_reason)
+            failure_reason = '\n'.join(result.failures) if not use_color else term.red('\n'.join(result.failure_reason))
 
             output_func('{name}\n{reason}\n'.format(name=name,
                                                     reason=failure_reason))
