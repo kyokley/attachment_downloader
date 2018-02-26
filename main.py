@@ -48,6 +48,10 @@ def main():
         if FILENAME:
             output_results_to_file(FILENAME, results)
 
+        for result in results:
+            if result.has_failures:
+                result.write_failures_to_file()
+
     print()
     print('All Done')
 
