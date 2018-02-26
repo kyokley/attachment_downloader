@@ -55,7 +55,7 @@ def run_all():
     config = loadConfig('settings.conf')
     LOCAL_DIRECTORY = config.get('ATTACHMENTS', 'LOCAL_DIRECTORY')
     EXECUTABLE = config.get('EXECUTION', 'EXECUTABLE')
-    STOP_ON_FIRST_FAILURE = config.get('EXECUTION', 'STOP_ON_FIRST_FAILURE')
+    STOP_ON_FIRST_FAILURE = config.getboolean('EXECUTION', 'STOP_ON_FIRST_FAILURE')
 
     solutions = os.listdir(LOCAL_DIRECTORY)
 
@@ -105,6 +105,7 @@ def run_all():
             except StopExecution:
                 raise
             except Exception as e:
+                print(term.red('ERROR:'))
                 print(term.red('Got exception running {}'.format(solution)))
                 print(term.red(str(e)))
                 failure_message = str(e)
@@ -119,7 +120,7 @@ def run_all():
                     break
 
         finish_time = datetime.now()
-        result.time = finish_time - start_time,
+        result.time = finish_time - start_time
         results.append(result)
 
 
