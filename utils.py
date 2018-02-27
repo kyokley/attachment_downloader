@@ -116,12 +116,15 @@ def assess_answer(expected, actual, conversion_func=None):
 
     for idx, val in enumerate(expected):
         if val != split_actual[idx]:
-            return 'Value at index {idx} does not match\nExpected: {expected} ({expected_type}) Actual: {actual} ({actual_type})'.format(
-                        idx=idx,
-                        expected=val,
-                        expected_type=type(val),
-                        actual=split_actual[idx],
-                        actual_type=type(split_actual[idx]))
+            return ('Value at index {idx} does not match\nExpected: {expected} ({expected_type}) Actual: {actual} ({actual_type})\n'
+                    'Expected sum: {expected_sum}\n'
+                    'Actual sum: {actual_sum}\n').format(idx=idx,
+                                                         expected=val,
+                                                         expected_type=type(val),
+                                                         expected_sum=sum(expected),
+                                                         actual=split_actual[idx],
+                                                         actual_type=type(split_actual[idx]),
+                                                         actual_sum=sum(split_actual))
 
 def output_results_to_file(filename, results):
     with open(filename, 'w') as f:

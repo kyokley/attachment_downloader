@@ -46,7 +46,7 @@ class TestAssessAnswer(object):
         assert expected == actual
 
     def test_expected_actual_mismatch(self):
-        expected = "Value at index 3 does not match\nExpected: 4 (<class 'int'>) Actual: 3 (<class 'int'>)"
+        expected = "Value at index 3 does not match\nExpected: 4 (<class 'int'>) Actual: 3 (<class 'int'>)\nExpected sum: 15\nActual sum: 13\n"
         actual = assess_answer([1, 2, 3, 4, 5], '1\n2\n3\n3\n4\n', conversion_func=int)
 
         assert expected == actual
